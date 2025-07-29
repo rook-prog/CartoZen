@@ -48,12 +48,12 @@ with st.sidebar:
     m_col = st.color_picker("Colour", "#00cc44")
     m_size = st.slider("Size", 5, 20, 10)
     show_lab = st.checkbox("Show labels", True)
-    dx = st.slider("Label offset °lon", 0.00, 0.20, 0.05, 0.01) if show_lab else 0
-    dy = st.slider("Label offset °lat", 0.00, 0.20, 0.00, 0.01) if show_lab else 0
+    dx = st.slider("Label offset °lon", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
+    dy = st.slider("Label offset °lat", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
 
     st.subheader("Grid & Axis")
     grid_on = st.checkbox("Grid", True)
-    g_int = st.selectbox("Interval °", [0.25, 0.5, 1, 2], index=2)
+    g_int = st.slider("Interval °", [0.1, 0.25, 0.5, 1, 2, 5, 10], index=2)
     g_col = st.color_picker("Grid colour", "#666666")
     g_style = st.selectbox("Style", ["solid", "dashed", "dotted"])
     g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
@@ -63,9 +63,9 @@ with st.sidebar:
     leg_on = st.checkbox("Legend", True)
     leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"])
     sb_on = st.checkbox("Scale-bar", True)
-    sb_len = st.slider("Bar length", 10, 200, 50)
+    sb_len = st.slider("Bar length", 10, 500, 50, 10)
     sb_seg = st.slider("Segments", 2, 5, 3)
-    sb_thk = st.slider("Bar thickness", 1, 10, 3)
+    sb_thk = st.slider("Bar thickness", 1, 15, 3)
     sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
     sb_unit = st.selectbox("Units", ["km", "miles"])
     na_on = st.checkbox("North arrow", True)
