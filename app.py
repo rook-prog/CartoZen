@@ -1,4 +1,5 @@
 
+from PIL import Image
 import streamlit as st
 import pandas as pd
 import geopandas as gpd
@@ -14,8 +15,14 @@ from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
 
-st.set_page_config(page_title="CartoZen – Station Map Generator", layout="wide")
-st.title("📍 CartoZen — *Station Map Generator v3.2-beta*")
+st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide")
+
+# Load logo
+logo = Image.open("assets/logo_small.png")
+st.columns([1,6,1])[1].image(logo, use_container_width=False)
+
+st.title("🗺️ CartoZen – Station Map Generator (Beta)")
+st.markdown("Welcome to the beta version of CartoZen. Upload your station data and generate custom maps easily.")
 
 with st.sidebar:
     st.header("⚙️ Controls")
