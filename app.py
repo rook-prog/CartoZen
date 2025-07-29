@@ -53,7 +53,7 @@ with st.sidebar:
 
     st.subheader("Grid & Axis")
     grid_on = st.checkbox("Grid", True)
-    g_int = st.slider("Interval °", [0.1, 0.25, 0.5, 1, 2, 5, 10], index=2)
+    g_int = st.selectbox("Interval °", [0.1, 0.25, 0.5, 1, 2, 5, 10], index=2)
     g_col = st.color_picker("Grid colour", "#666666")
     g_style = st.selectbox("Style", ["solid", "dashed", "dotted"])
     g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
