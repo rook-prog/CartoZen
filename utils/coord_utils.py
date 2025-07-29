@@ -42,7 +42,4 @@ def get_buffered_extent(df, buffer_deg=5):
     min_lat = max(np.floor(df['Lat_DD'].min()) - buffer_deg, -90)
     max_lat = min(np.ceil(df['Lat_DD'].max()) + buffer_deg, 90)
     return [min_lon, max_lon, min_lat, max_lat]
-<<<<<<< HEAD
 
-=======
->>>>>>> 831cfdf (WIP: prepare for pull rebase)
