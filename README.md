@@ -2,6 +2,8 @@
 
 ![CartoZen Logo](assets/logo_small.png)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16566366.svg)](https://doi.org/10.5281/zenodo.16566366)
+
 **CartoZen** is a lightweight, modular, and interactive map generator that helps you create high-quality station maps from geospatial data files like CSV or Excel.
 
 Whether you're a researcher, student, educator, or content creator — CartoZen offers an intuitive interface to plot latitude-longitude data over styled maps with complete layout control.
@@ -13,8 +15,8 @@ Whether you're a researcher, student, educator, or content creator — CartoZen 
 This is the **first public release** of CartoZen (Beta), currently available for **trial and testing**.  
 We welcome feedback, bug reports, and suggestions for improving the app before the stable version.
 
-> 🔒 Internal dev version: `v3.2`  
-> 🌐 Public beta tag: `vBeta-2025.07`
+> 🔒 Internal dev version: `v3.3`  
+> 🌐 Public beta tag: `v0.9.1 Beta`
 
 ---
 
