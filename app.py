@@ -31,15 +31,17 @@ with st.sidebar:
     up_file = st.file_uploader("CSV / XLSX", ["csv", "xlsx"])
     coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
     if up_file is not None:
-        df = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
+        df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
+        df = convert_coords(df0, coord_fmt, lat_col, lon_col)
+    # 2. Extent logic now safe
+    extent = None
+    if not auto_ext:
+        buffer_deg = st.sidebar.slider("Buffer around data (°)", 1, 20, 5)
+        extent = get_buffered_extent(df, buffer_deg)
     # Parse or preprocess if needed
     auto_ext = st.checkbox("Auto-fit extent", True)
     margin = st.slider("Margin %", 1, 30, 10)
-    extent = None  # fallback to Cartopy auto extent or logic
-    if not auto_ext:
-        buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
-        extent = get_buffered_extent(df, buffer_deg)
-    #if not auto_ext:
+        #if not auto_ext:
         #left = st.text_input("Left", "68°0'E")
         #right = st.text_input("Right", "76°0'E")
         #bot = st.text_input("Bottom", "20°0'N")
