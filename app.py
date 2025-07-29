@@ -103,6 +103,12 @@ if up_file and stn and at and lab:
     lon_col = [c for c in df0.columns if c.lower() in ["long", "longitude"]][0]
     df = convert_coords(df0, coord_fmt, lat_col, lon_col)
 
+    # ✅ Validate coordinate conversion
+if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
+    st.error("❌ Coordinate conversion failed.\nPlease ensure that the selected coordinate format (DMS, Decimal Degrees, or UTM) matches your uploaded data.")
+    st.stop()
+
+
     if auto_ext:
         lo, hi = df["Lon_DD"].agg(["min", "max"])
         la, lb = df["Lat_DD"].agg(["min", "max"])
