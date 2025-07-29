@@ -20,7 +20,7 @@ view = st.selectbox("View", ["Map", "About", "Changelog"])
 if view == "Map":
     # ⬇️ Place your entire existing map generation logic here
     # From file upload, coordinate handling, plotting, customization, etc.
-st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide")
+    st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide")
 
 # Load logo
 logo = Image.open("assets/logo_small.png")
