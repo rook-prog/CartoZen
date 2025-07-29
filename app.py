@@ -104,7 +104,7 @@ if up_file and stn and at and lab:
     df = convert_coords(df0, coord_fmt, lat_col, lon_col)
 
     # ✅ Validate coordinate conversion
-if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
+if df["lat_col"].isnull().all() or df["lon_col"].isnull().all():
     st.error("❌ Coordinate conversion failed.\nPlease ensure that the selected coordinate format (DMS, Decimal Degrees, or UTM) matches your uploaded data.")
     st.stop()
 
