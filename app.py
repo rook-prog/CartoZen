@@ -37,8 +37,8 @@ with st.sidebar:
     margin = st.slider("Margin %", 1, 30, 10)
     extent = None  # fallback to Cartopy auto extent or logic
     if not auto_ext:
-    buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
-    extent = get_buffered_extent(df, buffer_deg)
+        buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
+        extent = get_buffered_extent(df, buffer_deg)
     #if not auto_ext:
         #left = st.text_input("Left", "68°0'E")
         #right = st.text_input("Right", "76°0'E")
