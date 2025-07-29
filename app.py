@@ -19,7 +19,7 @@ st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide
 
 # Load logo
 logo = Image.open("assets/logo_small.png")
-st.columns([1,6,1])[1].image(logo, use_column_width=False)
+st.columns([1,6,1])[1].image(logo, use_container_width=False)
 
 st.title("🗺️ CartoZen – Station Map Generator (Beta)")
 st.markdown("Welcome to the beta version of CartoZen. Upload your station data and generate custom maps easily.")
