@@ -33,10 +33,27 @@ with st.sidebar:
     auto_ext = st.checkbox("Auto-fit extent", True)
     margin = st.slider("Margin %", 1, 30, 10)
     if not auto_ext:
-        left = st.text_input("Left", "68°0'E")
-        right = st.text_input("Right", "76°0'E")
-        bot = st.text_input("Bottom", "20°0'N")
-        top = st.text_input("Top", "24°0'N")
+        buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
+
+        min_lon = np.floor(df['Longitude'].min()) - buffer_deg
+        max_lon = np.ceil(df['Longitude'].max()) + buffer_deg
+        min_lat = np.floor(df['Latitude'].min()) - buffer_deg
+        max_lat = np.ceil(df['Latitude'].max()) + buffer_deg
+
+    # Clip to valid ranges
+        min_lon = max(min_lon, -180)
+        max_lon = min(max_lon, 180)
+        min_lat = max(min_lat, -90)
+        max_lat = min(max_lat, 90)
+
+        extent = [min_lon, max_lon, min_lat, max_lat]
+    else:
+        extent = None  # fallback to Cartopy auto extent or logic
+    #if not auto_ext:
+        #left = st.text_input("Left", "68°0'E")
+        #right = st.text_input("Right", "76°0'E")
+        #bot = st.text_input("Bottom", "20°0'N")
+        #top = st.text_input("Top", "24°0'N")
 
     st.subheader("Overlay")
     ov_file = st.file_uploader("zip / GeoJSON / KML", ["zip", "geojson", "kml"])
@@ -130,6 +147,9 @@ if up_file and stn and at and lab:
     fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
     fig.set_size_inches(*get_page_size(p_sz, ori), forward=True)
     ax = plt.axes(projection=ccrs.PlateCarree())
+    if extent:
+    ax.set_extent(extent, crs=ccrs.PlateCarree())
+
     fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     ax.set_extent(bounds)
     ax.add_feature(cfeature.LAND.with_scale("50m"), fc=land_col)
