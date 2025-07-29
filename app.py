@@ -113,8 +113,7 @@ if up_file and stn and at and lab:
                   la - (lb - la) * margin / 100,
                   lb + (lb - la) * margin / 100)
     else:
-        bounds = (dms_to_dd(left), dms_to_dd(right),
-                  dms_to_dd(bot), dms_to_dd(top))
+        bounds = get_buffered_extent(df, buffer_deg)
 
     halo = [pe.withStroke(linewidth=3, foreground="white")]
     fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
