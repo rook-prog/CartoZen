@@ -1,6 +1,6 @@
 # 🗺️ CartoZen Beta – Interactive Station Map Generator
 
-![CartoZen Logo](assets/logo.png)
+![CartoZen Logo](assets/logo_small.png)
 
 **CartoZen** is a lightweight, modular, and interactive map generator that helps you create high-quality station maps from geospatial data files like CSV or Excel.
 
