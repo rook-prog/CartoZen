@@ -198,8 +198,7 @@ if up_file and stn and at and lab:
 
     tmp = tempfile.mkdtemp()
     out = os.path.join(tmp, f"map.{fmt.lower()}")
-    if add_wm:
-        ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
+    add_wm = ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
             ha="right", va="bottom", fontsize=6, color="gray", alpha=0.6)
 
     fig.savefig(out, bbox_inches="tight", pad_inches=0.3, format=fmt.lower())
