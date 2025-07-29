@@ -98,7 +98,7 @@ with st.sidebar:
     else:
         stn = at = lab = head1 = head2 = None
 
-    with st.sidebar.expander"**Export**", expanded=False):
+    with st.sidebar.expander("**Export**", expanded=False):
         fmt = st.selectbox("Format", ["PNG", "JPEG"])
         dpi = st.slider("DPI", 100, 600, 300)
         p_sz = st.selectbox("Page", ["A4", "A3", "Letter"])
