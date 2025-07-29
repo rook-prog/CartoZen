@@ -1,4 +1,5 @@
 
+
 from PIL import Image
 import streamlit as st
 import pandas as pd
@@ -26,37 +27,23 @@ st.markdown("Welcome to the beta version of CartoZen. Upload your station data a
 
 with st.sidebar:
     st.header("⚙️ Controls")
-
     st.subheader("Data upload")
     up_file = st.file_uploader("CSV / XLSX", ["csv", "xlsx"])
     coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
-    if up_file is not None:
-        df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
-        lat_col = [c for c in df0.columns if c.lower() in ["lat", "latitude"]][0]
-        lon_col = [c for c in df0.columns if c.lower() in ["long", "longitude"]][0]
-        df = convert_coords(df0, coord_fmt, lat_col, lon_col)
-    # 2. Extent logic now safe
-    extent = None
-    if not auto_ext:
-        buffer_deg = st.sidebar.slider("Buffer around data (°)", 1, 20, 5)
-        extent = get_buffered_extent(df, buffer_deg)
-    # Parse or preprocess if needed
     auto_ext = st.checkbox("Auto-fit extent", True)
     margin = st.slider("Margin %", 1, 30, 10)
-        #if not auto_ext:
-        #left = st.text_input("Left", "68°0'E")
-        #right = st.text_input("Right", "76°0'E")
-        #bot = st.text_input("Bottom", "20°0'N")
-        #top = st.text_input("Top", "24°0'N")
+
+    buffer_deg = 5
+    if not auto_ext:
+        buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
 
     st.subheader("Overlay")
     ov_file = st.file_uploader("zip / GeoJSON / KML", ["zip", "geojson", "kml"])
     show_ov = st.checkbox("Show overlay", True)
-    
+
     st.subheader("Map Colors")
     land_col = st.color_picker("Land color", "#f0e8d8")
     ocean_col = st.color_picker("Water color", "#cce6ff")
-
 
     st.subheader("Marker")
     shape = st.selectbox("Shape", list(shape_map.keys()))
@@ -73,14 +60,6 @@ with st.sidebar:
     g_style = st.selectbox("Style", ["solid", "dashed", "dotted"])
     g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
     axis_fmt = st.radio("Label format", ["Decimal", "DMS"])
-
-    # Border label toggles
-   # st.markdown("**Coordinate label sides**")
-    #show_top = st.checkbox("Top", True, key="grid_top")
-    #show_bottom = st.checkbox("Bottom", True, key="grid_bottom")
-    #show_left = st.checkbox("Left", True, key="grid_left")
-    #show_right = st.checkbox("Right", True, key="grid_right")
-    
 
     st.subheader("Elements + Fonts")
     leg_on = st.checkbox("Legend", True)
