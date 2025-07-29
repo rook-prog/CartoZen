@@ -10,7 +10,7 @@ import matplotlib.patheffects as pe
 import numpy as np
 import tempfile, os, base64
 from matplotlib import ticker as mticker
-from utils.coord_utils import convert_coords, dms_to_dd
+from utils.coord_utils import convert_coords, dms_to_dd, get_buffered_extent
 from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
@@ -35,23 +35,10 @@ with st.sidebar:
     # Parse or preprocess if needed
     auto_ext = st.checkbox("Auto-fit extent", True)
     margin = st.slider("Margin %", 1, 30, 10)
+    extent = None  # fallback to Cartopy auto extent or logic
     if not auto_ext:
-        buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
-
-        min_lon = np.floor(df['Longitude'].min()) - buffer_deg
-        max_lon = np.ceil(df['Longitude'].max()) + buffer_deg
-        min_lat = np.floor(df['Latitude'].min()) - buffer_deg
-        max_lat = np.ceil(df['Latitude'].max()) + buffer_deg
-
-    # Clip to valid ranges
-        min_lon = max(min_lon, -180)
-        max_lon = min(max_lon, 180)
-        min_lat = max(min_lat, -90)
-        max_lat = min(max_lat, 90)
-
-        extent = [min_lon, max_lon, min_lat, max_lat]
-    else:
-        extent = None  # fallback to Cartopy auto extent or logic
+    buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
+    extent = get_buffered_extent(df, buffer_deg)
     #if not auto_ext:
         #left = st.text_input("Left", "68°0'E")
         #right = st.text_input("Right", "76°0'E")
