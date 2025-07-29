@@ -30,8 +30,8 @@ st.title("🗺️ CartoZen – Station Map Generator (Beta)")
 st.markdown("Welcome to the beta version of CartoZen. Upload your station data and generate custom maps easily.")
 
 with st.sidebar:
-    st.header("⚙️ Controls")
-    with st.sidebar.expander("Data upload", expanded =True):
+    st.header("**⚙️ Controls**")
+    with st.sidebar.expander("**Data upload**", expanded =False):
         up_file = st.file_uploader("CSV / XLSX", ["csv", "xlsx"])
         coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
         auto_ext = st.checkbox("Auto-fit extent", True)
@@ -41,68 +41,69 @@ with st.sidebar:
     if not auto_ext:
         buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
 
-    st.subheader("Overlay")
-    ov_file = st.file_uploader("zip / GeoJSON / KML", ["zip", "geojson", "kml"])
-    show_ov = st.checkbox("Show overlay", True)
+    with st.sidebar.expander("**Overlay**", expanded =False):
+        ov_file = st.file_uploader("zip / GeoJSON / KML", ["zip", "geojson", "kml"])
+        show_ov = st.checkbox("Show overlay", True)
 
-    st.subheader("Map Colors")
-    land_col = st.color_picker("Land color", "#f0e8d8")
-    ocean_col = st.color_picker("Water color", "#cce6ff")
+    with st.sidebar.expander("**Map Colors**", expanded=False):
+        land_col = st.color_picker("Land color", "#f0e8d8")
+        ocean_col = st.color_picker("Water color", "#cce6ff")
 
-    st.subheader("Marker")
-    shape = st.selectbox("Shape", list(shape_map.keys()))
-    m_col = st.color_picker("Colour", "#00cc44")
-    m_size = st.slider("Size", 5, 20, 10)
-    show_lab = st.checkbox("Show labels", True)
-    dx = st.slider("Label offset °lon", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
-    dy = st.slider("Label offset °lat", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
+    with st.sidebar.expander("**Marker**", expanded=False):
+        shape = st.selectbox("Shape", list(shape_map.keys()))
+        m_col = st.color_picker("Colour", "#00cc44")
+        m_size = st.slider("Size", 5, 20, 10)
+        show_lab = st.checkbox("Show labels", True)
+        dx = st.slider("Label offset °lon", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
+        dy = st.slider("Label offset °lat", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
 
-    st.subheader("Grid & Axis")
-    grid_on = st.checkbox("Grid", True)
-    g_int = st.selectbox("Interval °", [0.1, 0.25, 0.5, 1, 2, 5, 10], index=2)
-    g_col = st.color_picker("Grid colour", "#666666")
-    g_style = st.selectbox("Style", ["solid", "dashed", "dotted"])
-    g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
-    axis_fmt = st.radio("Label format", ["Decimal", "DMS"])
+    with st.sidebar.expander("**Grid & Axis**", expanded=False):
+        grid_on = st.checkbox("Grid", True)
+        g_int = st.selectbox("Interval °", [0.1, 0.25, 0.5, 1, 2, 5, 10], index=2)
+        g_col = st.color_picker("Grid colour", "#666666")
+        g_style = st.selectbox("Style", ["solid", "dashed", "dotted"])
+        g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
+        axis_fmt = st.radio("Label format", ["Decimal", "DMS"])
 
-    st.subheader("Elements + Fonts")
-    leg_on = st.checkbox("Legend", True)
-    leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"])
-    sb_on = st.checkbox("Scale-bar", True)
-    sb_len = st.slider("Bar length", 10, 500, 50, 10)
-    sb_seg = st.slider("Segments", 2, 5, 3)
-    sb_thk = st.slider("Bar thickness", 1, 50, 3)
-    sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
-    sb_unit = st.selectbox("Units", ["km", "miles"])
-    na_on = st.checkbox("North arrow", True)
-    na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"])
-    na_col = st.color_picker("North colour", "#000000")
-    st.markdown("**Font sizes**")
-    axis_f = st.slider("Axis ticks", 6, 16, 8)
-    label_f = st.slider("Labels", 6, 16, 8)
-    legend_f = st.slider("Legend", 6, 16, 8)
-    sb_f = st.slider("Scale-bar", 6, 16, 8)
-    north_f = st.slider("North arrow", 10, 30, 18)
+    with st.sidebar.expander("**Elements + Fonts**", expanded=False):
+        leg_on = st.checkbox("Legend", True)
+        leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"])
+        sb_on = st.checkbox("Scale-bar", True)
+        sb_len = st.slider("Bar length", 10, 500, 50, 10)
+        sb_seg = st.slider("Segments", 2, 5, 3)
+        sb_thk = st.slider("Bar thickness", 1, 50, 3)
+        sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
+        sb_unit = st.selectbox("Units", ["km", "miles"])
+        na_on = st.checkbox("North arrow", True)
+        na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"])
+        na_col = st.color_picker("North colour", "#000000")
+   
+    with st.sidebar.expander("**Font sizes**", expanded=False):
+        axis_f = st.slider("Axis ticks", 6, 16, 8)
+        label_f = st.slider("Labels", 6, 16, 8)
+        legend_f = st.slider("Legend", 6, 16, 8)
+        sb_f = st.slider("Scale-bar", 6, 16, 8)
+        north_f = st.slider("North arrow", 10, 30, 18)
 
     if up_file:
         df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
         df_cols = df0.columns
-        st.subheader("Legend / Label columns")
-        stn = st.selectbox("Station ID", df_cols)
-        at = st.selectbox("Attribute", df_cols)
-        lab = st.selectbox("Label col", df_cols)
-        st.markdown("**Legend header**")
-        head1 = st.text_input("Header line 1", value=f"{stn} – {at}")
-        head2 = st.text_input("Header line 2 (optional)", value="")
+        with st.sidebar.expander("**Legend / Label columns**", expanded=False):
+            stn = st.selectbox("Station ID", df_cols)
+            at = st.selectbox("Attribute", df_cols)
+            lab = st.selectbox("Label col", df_cols)
+        with st.sidebar.expander("**Legend header**", expanded=False):
+            head1 = st.text_input("Header line 1", value=f"{stn} – {at}")
+            head2 = st.text_input("Header line 2 (optional)", value="")
     else:
         stn = at = lab = head1 = head2 = None
 
-    st.subheader("Export")
-    fmt = st.selectbox("Format", ["PNG", "JPEG"])
-    dpi = st.slider("DPI", 100, 600, 300)
-    p_sz = st.selectbox("Page", ["A4", "A3", "Letter"])
-    ori = st.selectbox("Orientation", ["Landscape", "Portrait"])
-    full = st.checkbox("Full-width preview", False)
+    with st.sidebar.expander"**Export**", expanded=False):
+        fmt = st.selectbox("Format", ["PNG", "JPEG"])
+        dpi = st.slider("DPI", 100, 600, 300)
+        p_sz = st.selectbox("Page", ["A4", "A3", "Letter"])
+        ori = st.selectbox("Orientation", ["Landscape", "Portrait"])
+        full = st.checkbox("Full-width preview", False)
 
 if up_file and stn and at and lab:
     lat_col = [c for c in df0.columns if c.lower() in ["lat", "latitude"]][0]
