@@ -1,5 +1,3 @@
-
-
 from PIL import Image
 import streamlit as st
 import pandas as pd
@@ -81,7 +79,8 @@ with st.sidebar:
     north_f = st.slider("North arrow", 10, 30, 18)
 
     if up_file:
-        df_cols = pd.read_csv(up_file).columns if up_file.name.endswith("csv") else pd.read_excel(up_file).columns
+        df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
+        df_cols = df0.columns
         st.subheader("Legend / Label columns")
         stn = st.selectbox("Station ID", df_cols)
         at = st.selectbox("Attribute", df_cols)
@@ -100,7 +99,6 @@ with st.sidebar:
     full = st.checkbox("Full-width preview", False)
 
 if up_file and stn and at and lab:
-    df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
     lat_col = [c for c in df0.columns if c.lower() in ["lat", "latitude"]][0]
     lon_col = [c for c in df0.columns if c.lower() in ["long", "longitude"]][0]
     df = convert_coords(df0, coord_fmt, lat_col, lon_col)
@@ -119,11 +117,9 @@ if up_file and stn and at and lab:
     fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
     fig.set_size_inches(*get_page_size(p_sz, ori), forward=True)
     ax = plt.axes(projection=ccrs.PlateCarree())
-    #if extent:
-        #ax.set_extent(extent, crs=ccrs.PlateCarree())
-
-    fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     ax.set_extent(bounds)
+    fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+
     ax.add_feature(cfeature.LAND.with_scale("50m"), fc=land_col)
     ax.add_feature(cfeature.OCEAN.with_scale("50m"), fc=ocean_col)
     ax.add_feature(cfeature.BORDERS, ls=":")
