@@ -1,6 +1,7 @@
-streamlit>=1.35
+streamlit
 pandas
-geopandas
 matplotlib
 cartopy
-utm
+openpyxl
+geopandas
+shapely
