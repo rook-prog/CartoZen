@@ -102,11 +102,15 @@ if up_file and stn and at and lab:
     lat_col = [c for c in df0.columns if c.lower() in ["lat", "latitude"]][0]
     lon_col = [c for c in df0.columns if c.lower() in ["long", "longitude"]][0]
     df = convert_coords(df0, coord_fmt, lat_col, lon_col)
+    # ✅ Check that the converted columns exist
+    if "Lat_DD" not in df.columns or "Lon_DD" not in df.columns:
+        st.error("❌ Converted coordinate columns not found. Please verify your input and format.")
+        st.stop()
 
     # ✅ Validate coordinate conversion
-if df["lat_col"].isnull().all() or df["lon_col"].isnull().all():
-    st.error("❌ Coordinate conversion failed.\nPlease ensure that the selected coordinate format (DMS, Decimal Degrees, or UTM) matches your uploaded data.")
-    st.stop()
+    if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
+        st.error("❌ Coordinate conversion failed.\nPlease ensure that the selected coordinate format (DMS, Decimal Degrees, or UTM) matches your uploaded data.")
+        st.stop()
 
 
     if auto_ext:
