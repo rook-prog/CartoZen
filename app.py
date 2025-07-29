@@ -32,6 +32,8 @@ with st.sidebar:
     coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
     if up_file is not None:
         df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
+        lat_col = [c for c in df0.columns if c.lower() in ["lat", "latitude"]][0]
+        lon_col = [c for c in df0.columns if c.lower() in ["long", "longitude"]][0]
         df = convert_coords(df0, coord_fmt, lat_col, lon_col)
     # 2. Extent logic now safe
     extent = None
