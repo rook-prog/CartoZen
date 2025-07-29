@@ -30,3 +30,15 @@ def convert_coords(df, fmt, lat_col, lon_col):
         df[["Lat_DD", "Lon_DD"]] = df.apply(lambda r: pd.Series(
             utm.to_latlon(r.E, r.N, int(r.Z), r.ZL)), axis=1)
     return df.dropna(subset=["Lat_DD", "Lon_DD"])
+
+def get_buffered_extent(df, buffer_deg=5):
+    """
+    Returns a bounding box with buffer around station coordinates.
+    Assumes df has 'Lat_DD' and 'Lon_DD' columns.
+    """
+    min_lon = max(np.floor(df['Lon_DD'].min()) - buffer_deg, -180)
+    max_lon = min(np.ceil(df['Lon_DD'].max()) + buffer_deg, 180)
+    min_lat = max(np.floor(df['Lat_DD'].min()) - buffer_deg, -90)
+    max_lat = min(np.ceil(df['Lat_DD'].max()) + buffer_deg, 90)
+    return [min_lon, max_lon, min_lat, max_lat]
+
