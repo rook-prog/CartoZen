@@ -65,7 +65,7 @@ with st.sidebar:
     sb_on = st.checkbox("Scale-bar", True)
     sb_len = st.slider("Bar length", 10, 500, 50, 10)
     sb_seg = st.slider("Segments", 2, 5, 3)
-    sb_thk = st.slider("Bar thickness", 1, 15, 3)
+    sb_thk = st.slider("Bar thickness", 1, 50, 3)
     sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
     sb_unit = st.selectbox("Units", ["km", "miles"])
     na_on = st.checkbox("North arrow", True)
