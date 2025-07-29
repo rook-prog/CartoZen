@@ -14,6 +14,12 @@ from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
 
+# Navigation selection at the top
+view = st.selectbox("View", ["Map", "About", "Changelog"])
+
+if view == "Map":
+    # ⬇️ Place your entire existing map generation logic here
+    # From file upload, coordinate handling, plotting, customization, etc.
 st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide")
 
 # Load logo
@@ -208,3 +214,9 @@ if up_file and stn and at and lab:
                 f'download="station_map.{fmt.lower()}">📥 Download Map</a>',
                 unsafe_allow_html=True)
     st.image(out, use_container_width=full)
+
+elif view == "About":
+    st.markdown(open("about.md", "r").read(), unsafe_allow_html=True)
+
+elif view == "Changelog":
+    st.markdown(open("changelog.md", "r").read(), unsafe_allow_html=True)
