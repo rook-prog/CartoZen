@@ -32,10 +32,10 @@ st.markdown("Welcome to the beta version of CartoZen. Upload your station data a
 with st.sidebar:
     st.header("⚙️ Controls")
     with st.sidebar.expander("Data upload", expanded =True):
-    up_file = st.file_uploader("CSV / XLSX", ["csv", "xlsx"])
-    coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
-    auto_ext = st.checkbox("Auto-fit extent", True)
-    margin = st.slider("Margin %", 1, 30, 10)
+        up_file = st.file_uploader("CSV / XLSX", ["csv", "xlsx"])
+        coord_fmt = st.selectbox("Coord format", ["DMS", "Decimal Degrees", "UTM"])
+        auto_ext = st.checkbox("Auto-fit extent", True)
+        margin = st.slider("Margin %", 1, 30, 10)
 
     buffer_deg = 5
     if not auto_ext:
