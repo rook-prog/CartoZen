@@ -119,8 +119,8 @@ if up_file and stn and at and lab:
     fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
     fig.set_size_inches(*get_page_size(p_sz, ori), forward=True)
     ax = plt.axes(projection=ccrs.PlateCarree())
-    if extent:
-        ax.set_extent(extent, crs=ccrs.PlateCarree())
+    #if extent:
+        #ax.set_extent(extent, crs=ccrs.PlateCarree())
 
     fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
     ax.set_extent(bounds)
