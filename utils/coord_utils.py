@@ -1,6 +1,7 @@
 import pandas as pd
 import utm
 import re
+import numpy as np
 
 def dms_to_dd(dms):
     try:
