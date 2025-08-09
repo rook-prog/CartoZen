@@ -212,7 +212,7 @@ def convert_coords(df, fmt, lat_col, lon_col):
 
             # Assign to output columns
             df["Lat_DD"] = lat_num
-            df["Lon_DD"] = lon_num)
+            df["Lon_DD"] = lon_num
 
         else:  # UTM
             # Expect first four columns as E, N, Z, ZL (hemisphere letter)
