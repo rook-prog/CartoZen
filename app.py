@@ -9,7 +9,7 @@ import matplotlib.patheffects as pe
 import numpy as np
 import tempfile, os, base64
 from matplotlib import ticker as mticker
-from utils.coord_utils import convert_coords, dms_to_dd, get_buffered_extent
+from utils.coord_utils_v2 import convert_coords, dms_to_dd, get_buffered_extent
 from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
