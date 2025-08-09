@@ -106,7 +106,7 @@ with st.sidebar:
         full = st.checkbox("Full-width preview", False)
 
 if up_file and stn and at and lab:
-    lat_col = [c for c in df0.columns if c.lower() in ["lat","latitude","lat_dd","y","ycoord","y_coord"][0]
+    lat_col = [c for c in df0.columns if c.lower() in ["lat","latitude","lat_dd","y","ycoord","y_coord"]][0]
     lon_col = [c for c in df0.columns if c.lower() in ["lon","long","longitude","lon_dd","x","xcoord","x_coord"]][0]
     df = convert_coords(df0, coord_fmt, lat_col, lon_col)
     # ✅ Check that the converted columns exist
