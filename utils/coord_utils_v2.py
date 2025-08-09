@@ -140,10 +140,15 @@ def convert_coords(df, fmt, lat_col, lon_col):
         )
 
     # Final cleanup: drop incomplete, clip to valid ranges, standardize precision
+    # Final cleanup: coerce -> dropna -> clip -> round
+    # (Coerce is needed because DMS path returns object dtype with None values)
+    df["Lat_DD"] = pd.to_numeric(df["Lat_DD"], errors="coerce")
+    df["Lon_DD"] = pd.to_numeric(df["Lon_DD"], errors="coerce")
+
     df = df.dropna(subset=["Lat_DD", "Lon_DD"]).copy()
     df["Lat_DD"] = df["Lat_DD"].clip(-90, 90).round(4)
     df["Lon_DD"] = df["Lon_DD"].clip(-180, 180).round(4)
-    return df
+    
 
 
 # ----------------------------- Map extent helper -----------------------------
