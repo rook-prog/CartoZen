@@ -1,9 +1,5 @@
-# app.py — CartoZen Station Map Generator (Beta)
-# Full patched version with:
-# - set_page_config at top
-# - safer lat/lon column detection
-# - integrated auto DMM fix via coord_utils.convert_coords (no app changes needed)
-# - clearer error messages
+# app.py — CartoZen Station Map Generator (Beta) with Inset Overview
+# Full merged version: includes inset overview map controls and rendering
 
 from PIL import Image
 import streamlit as st
@@ -17,10 +13,11 @@ import numpy as np
 import tempfile, os, base64
 from matplotlib import ticker as mticker
 
-from utils.coord_utils_v2 import convert_coords, dms_to_dd, get_buffered_extent
+from utils.coord_utils import convert_coords, dms_to_dd, get_buffered_extent
 from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
+from utils.inset_overview import draw_inset_overview
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Streamlit must set page config FIRST
@@ -28,6 +25,7 @@ st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Helper: safer column detection
+
 def _find_col(cols, candidates):
     cl = [c for c in cols for cand in candidates if c.lower() == cand]
     return cl[0] if cl else None
@@ -35,7 +33,7 @@ def _find_col(cols, candidates):
 # Top navigation
 view = st.selectbox("View", ["Map", "About", "Changelog"])
 
-# Header (logo + title) — shown for all tabs
+# Header (logo + title)
 try:
     logo = Image.open("assets/logo_small.png")
     st.columns([1, 6, 1])[1].image(logo, use_container_width=False)
@@ -107,6 +105,15 @@ if view == "Map":
             na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"])
             na_col = st.color_picker("North colour", "#000000")
 
+        # Inset overview controls
+        with st.expander("**Inset overview**", expanded=False):
+            inset_on = st.checkbox("Show inset", False)
+            inset_pos = st.selectbox("Inset pos", ["top right", "top left", "bottom right", "bottom left"], index=0)
+            inset_size = st.slider("Inset size (%)", 10, 40, 20)
+            inset_edge = st.color_picker("AOI edge colour", "#ff0000")
+            inset_ov = st.checkbox("Plot overlay in inset", True)
+
+        # Font sizes
         with st.expander("**Font sizes**", expanded=False):
             axis_f = st.slider("Axis ticks", 6, 16, 8)
             label_f = st.slider("Labels", 6, 16, 8)
@@ -153,21 +160,27 @@ if view == "Map":
             )
             st.stop()
 
-        # Convert coordinates (auto DMM detection happens inside convert_coords for 'Decimal Degrees')
-        df = convert_coords(df0, coord_fmt, lat_col, lon_col)
+        # Convert coordinates
+        try:
+            df = convert_coords(df0, coord_fmt, lat_col, lon_col)
+        except Exception as e:
+            st.error("❌ Coordinate conversion crashed. Please verify the selected format and input columns.")
+            st.exception(e)
+            st.stop()
 
-        # Ensure converted columns exist
+        if df is None or not isinstance(df, pd.DataFrame):
+            st.error("❌ Coordinate conversion returned no data. Check your format selection and column names.")
+            st.stop()
+
         if "Lat_DD" not in df.columns or "Lon_DD" not in df.columns:
             st.error("❌ Converted coordinate columns not found. Please verify your input and format.")
             st.stop()
 
-        # Validate conversion success
         if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
             st.error(
                 "❌ Coordinate conversion failed.\n\n"
                 "Hints:\n"
-                "• If your sheet mixes decimal degrees and degrees+decimal‑minutes (e.g., 72.3045 meaning 72°30.45'), "
-                "select **Decimal Degrees**.\n"
+                "• If your sheet mixes decimal degrees and degrees+decimal‑minutes (e.g., 72.3045 meaning 72°30.45'), select **Decimal Degrees**.\n"
                 "• If your sheet uses N/S/E/W like 20°30' N, select **DMS**.\n"
                 "• For UTM (Easting, Northing, Zone, Hemisphere), select **UTM**."
             )
@@ -177,7 +190,6 @@ if view == "Map":
         if auto_ext:
             lo, hi = df["Lon_DD"].agg(["min", "max"])
             la, lb = df["Lat_DD"].agg(["min", "max"])
-            # Add % margins around data-dependent extents
             bounds = (
                 lo - (hi - lo) * margin / 100.0,
                 hi + (hi - lo) * margin / 100.0,
@@ -280,8 +292,22 @@ if view == "Map":
                 bbox=box
             )
 
+        # Inset overview (call just before saving)
+        if inset_on:
+            draw_inset_overview(
+                ax_main=ax,
+                bounds=bounds,
+                overlay_path=ov_file if inset_ov else None,
+                plot_overlay=inset_ov,
+                inset_pos=inset_pos,
+                inset_size_pct=inset_size,
+                aoi_edge_color=inset_edge,
+                land_color=land_col,
+                ocean_color=ocean_col,
+            )
+
         # Watermark + export
-        add_wm = ax.text(
+        ax.text(
             0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
             ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6
         )
