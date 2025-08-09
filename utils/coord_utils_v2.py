@@ -114,6 +114,60 @@ def _auto_fix_dmm_inplace(df: pd.DataFrame, lat_col: str, lon_col: str) -> None:
 # ─────────────────────────────────────────────────────────────────────────────
 # Main API
 # ─────────────────────────────────────────────────────────────────────────────
+def loose_to_dd(val):
+    """
+    Best-effort parser for 'loose' coordinates:
+    - Accepts: 72.3045  | 72 30.45 | 72°30.45' | 72 30 27 | '72° 30' 27"'
+    - Returns decimal degrees (float) or NaN.
+    """
+    s = str(val).strip()
+    if not s:
+        return np.nan
+
+    # Remove cardinal letters
+    s = re.sub(r'[NnEeWw]', '', s)
+
+    # Normalize degree/min/sec symbols to spaces, keep digits, dot, minus and spaces
+    s = s.replace('°', ' ').replace('º', ' ')
+    s = s.replace('′', ' ').replace("’", ' ').replace("'", ' ')
+    s = s.replace('″', ' ').replace('”', ' ').replace('"', ' ')
+    s = s.replace(',', '.')  # comma decimal to dot
+    s = re.sub(r'[^0-9\.\-\s]', ' ', s)  # drop anything else
+    parts = [p for p in s.split() if p]
+
+    # 1 token: plain DD
+    if len(parts) == 1:
+        try:
+            return float(parts[0])
+        except Exception:
+            return np.nan
+
+    # 2–3 tokens: deg + minutes (+ seconds)
+    try:
+        deg = float(parts[0])
+        minutes = float(parts[1]) if len(parts) > 1 else 0.0
+        seconds = float(parts[2]) if len(parts) > 2 else 0.0
+        dd = abs(deg) + minutes / 60.0 + seconds / 3600.0
+        return -dd if deg < 0 else dd
+    except Exception:
+        return np.nan
+
+
+def _fix_dmm_series(s: pd.Series, kind="lat") -> pd.Series:
+    """
+    Given a numeric-ish series, convert entries that 'look like' DMM to proper DD.
+    """
+    def _looks_dmm(x):
+        try:
+            return is_probably_dmm(x, kind=kind)
+        except Exception:
+            return False
+
+    s = s.copy()
+    mask = s.apply(_looks_dmm)
+    if mask.any():
+        s.loc[mask] = s.loc[mask].apply(dmm_to_dd)
+    return s
 
 def convert_coords(df, fmt, lat_col, lon_col):
     """
@@ -139,11 +193,26 @@ def convert_coords(df, fmt, lat_col, lon_col):
             df["Lon_DD"] = df[lon_col].astype(str).apply(dms_to_dd)
 
         elif fmt == "Decimal Degrees":
-            # 1) Fix any mixed-in DMM cells
-            _auto_fix_dmm_inplace(df, lat_col, lon_col)
-            # 2) Coerce to floats
-            df["Lat_DD"] = _to_float_series(df[lat_col])
-            df["Lon_DD"] = _to_float_series(df[lon_col])
+            # Step 1: quick numeric coercion (handles commas/spaces)
+            lat_num = _to_float_series(df[lat_col])
+            lon_num = _to_float_series(df[lon_col])
+
+            # Step 2: where still NaN, try loose parsing (tokens -> DD)
+            lat_mask = lat_num.isna()
+            if lat_mask.any():
+                lat_num.loc[lat_mask] = df.loc[lat_mask, lat_col].apply(loose_to_dd)
+
+            lon_mask = lon_num.isna()
+            if lon_mask.any():
+                lon_num.loc[lon_mask] = df.loc[lon_mask, lon_col].apply(loose_to_dd)
+
+            # Step 3: auto-fix true DMM values
+            lat_num = _fix_dmm_series(lat_num, kind="lat")
+            lon_num = _fix_dmm_series(lon_num, kind="lon")
+
+            # Assign to output columns
+            df["Lat_DD"] = lat_num
+            df["Lon_DD"] = lon_num)
 
         else:  # UTM
             # Expect first four columns as E, N, Z, ZL (hemisphere letter)
