@@ -306,16 +306,23 @@ if view == "Map":
                 ocean_color=ocean_col,
             )
 
-        # Watermark + export
-        ax.text(
-            0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
-            ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6
-        )
+        # Watermark + export (replace this block)
+        ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
+                ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6)
 
         tmp = tempfile.mkdtemp()
         out = os.path.join(tmp, f"map.{fmt.lower()}")
-        fig.savefig(out, bbox_inches="tight", pad_inches=0.3, format=fmt.lower())
+
+        # Force render and try tight; fall back if Cartopy returns empty bboxes
+        try:
+            fig.canvas.draw()
+            fig.savefig(out, bbox_inches="tight", pad_inches=0.3,
+                        format=fmt.lower(), dpi=dpi)
+        except Exception:
+            fig.savefig(out, format=fmt.lower(), dpi=dpi)
+
         plt.close()
+
 
         # Download link + preview
         with open(out, "rb") as f:
