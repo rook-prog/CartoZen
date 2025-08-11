@@ -273,23 +273,7 @@ def draw_inset_overview(
     ne_countries_path=None,
     country_hint=None,
 ):
-    ax_main,
-    bounds,
-    overlay_path=None,
-    plot_overlay=True,
-    inset_pos="top right",
-    inset_size_pct=20,
-    aoi_edge_color="#ff0000",
-    overlay_edge_color="#0000ff",
-    land_color="#f0e8d8",
-    ocean_color="#cce6ff",
-    aoi_fill_alpha=0.0,
-    extent_mode="global",
-    extent_pad_deg=3.0,
-    inset_frame=True,
-    inset_frame_lw=0.8,
-    ne_countries_path=None,
-):
+    
     fig = ax_main.figure
     # Status channel: default to requested mode; may be overwritten below
     fig._cz_inset_used = extent_mode
