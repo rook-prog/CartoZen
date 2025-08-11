@@ -117,6 +117,9 @@ if view == "Map":
             extent_pad = st.slider("Inset extent padding (°)", 0.0, 10.0, 3.0, 0.5) #padding enabled
             frame_on = st.checkbox("Inset frame", True) #Frame enabled for inset
             frame_lw = st.slider("Inset frame width", 0.5, 3.0, 0.8, 0.1)
+            inset_rect_color = st.color_picker("AOI rectangle colour", "#ff0000")
+            inset_ov_color   = st.color_picker("Inset overlay colour", "#0000ff")
+
 
         # Font sizes
         with st.expander("**Font sizes**", expanded=False):
@@ -317,7 +320,8 @@ if view == "Map":
                 plot_overlay=inset_ov,
                 inset_pos=inset_pos,
                 inset_size_pct=inset_size,
-                aoi_edge_color=inset_edge,
+                aoi_edge_color=inset_rect_color,
+                overlay_edge_color=inset_ov_color,  # <--new
                 land_color=land_col,
                 ocean_color=ocean_col,
                 extent_mode=extent_mode,
