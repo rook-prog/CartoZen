@@ -70,6 +70,12 @@ def draw_inset_overview(
         ax_inset.set_in_layout(False)
     except Exception:
         pass
+    ax_inset.set_zorder(99)     # render above main/legend
+    ax_inset.patch.set_alpha(1.0)  # opaque background (helps visibility)
+    # Make the inset frame obvious
+    for spine in ax_inset.spines.values():
+        spine.set_visible(True)
+        spine.set_linewidth(1.2)
 
     ax_inset.set_global()
     ax_inset.add_feature(cfeature.OCEAN.with_scale("110m"), fc=ocean_color, lw=0)
@@ -110,5 +116,10 @@ def draw_inset_overview(
             spine.set_linewidth(0.8)
     except Exception:
         pass
+
+    # DEBUG label (remove later)
+    ax_inset.text(0.5, 0.5, "INSET", transform=ax_inset.transAxes,
+                  ha="center", va="center", fontsize=8, color="black", zorder=101)
+
 
     return ax_inset
