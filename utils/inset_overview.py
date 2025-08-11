@@ -1,5 +1,4 @@
 # === utils/inset_overview.py ===
-# (drop this file into utils/)
 # Figure-level inset with robust country/continent boxing, dateline safety,
 # and a small status channel back to the caller via fig._cz_inset_used/_cz_inset_reason
 
