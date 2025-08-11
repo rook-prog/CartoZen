@@ -61,7 +61,7 @@ def _normalize_longitudes(min_lon, max_lon):
     return a, b
 
 
-def _country_and_continent_boxes(bounds, ne_countries_path=None):
+def _country_and_continent_boxes(bounds, ne_countries_path=None, country_hint=None):
     """Return (country_box, continent_box, continent_name) in set_extent order
     for the AOI centroid. Boxes are (min_lon, max_lon, min_lat, max_lat).
     If `ne_countries_path` (zip or folder) is provided and readable, prefer it; otherwise
@@ -95,6 +95,30 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None):
                 records.append((r.geometry, a))
 
         # Robust hit selection
+        # Optional AOI rectangle for offshore/coastal ranking
+        from shapely.geometry import box as _box
+        aoi_box_geom = _box(bounds[0], bounds[2], bounds[1], bounds[3])
+
+        # Optional: country name hint prefilter (ADMIN/NAME fields in NE 10m)
+        def _name_of(attrs):
+            for k in ("ADMIN","NAME","SOVEREIGNT","BRK_NAME","NAME_LONG","NAME_EN","ADMIN_EN"):
+                v = _ci_get(attrs, k)
+                if v:
+                    return str(v)
+            return None
+
+        if country_hint:
+            cand = []
+            for g,a in records:
+                nm = _name_of(a)
+                if nm and country_hint.lower() in nm.lower():
+                    cand.append((g,a))
+            if cand:
+                records = cand
+
+        # --- Ranking / selection ---
+        # 0) direct contains of AOI centroid
+        hit_geom = hit_attrs = None
         hit_geom = hit_attrs = None
         for g, a in records:
             if g is None:
@@ -104,7 +128,17 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None):
                     hit_geom, hit_attrs = g, a; break
             except Exception:
                 continue
+        # 1) intersects AOI rectangle (helps when centroid is offshore)
         if hit_geom is None:
+            for g, a in records:
+                if g is None: continue
+                try:
+                    if g.intersects(aoi_box_geom):
+                        hit_geom, hit_attrs = g, a; break
+                except Exception:
+                    continue
+        if hit_geom is None:
+            # 2) intersects tiny centroid buffer (legacy path)
             pbuf = pt.buffer(1e-6)
             for g, a in records:
                 if g is None: continue
@@ -114,6 +148,7 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None):
                 except Exception:
                     continue
         if hit_geom is None:
+            # 3) bbox contains centroid (coarse)
             for g, a in records:
                 try:
                     mnx, mny, mxx, mxy = g.bounds
@@ -121,6 +156,18 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None):
                         hit_geom, hit_attrs = g, a; break
                 except Exception:
                     continue
+        if hit_geom is None:
+            # 4) nearest by distance to AOI rectangle (better for coastal AOIs)
+            best = (1e18, None, None)
+            for g, a in records:
+                if g is None: continue
+                try:
+                    d = g.distance(aoi_box_geom)
+                    if d < best[0]:
+                        best = (d, g, a)
+                except Exception:
+                    continue
+            _, hit_geom, hit_attrs = best
         if hit_geom is None:
             best = (1e18, None, None)
             for g, a in records:
@@ -225,6 +272,24 @@ def draw_inset_overview(
     inset_frame=True,
     inset_frame_lw=0.8,
     ne_countries_path=None,
+    country_hint=None,
+):
+    ax_main,
+    bounds,
+    overlay_path=None,
+    plot_overlay=True,
+    inset_pos="top right",
+    inset_size_pct=20,
+    aoi_edge_color="#ff0000",
+    overlay_edge_color="#0000ff",
+    land_color="#f0e8d8",
+    ocean_color="#cce6ff",
+    aoi_fill_alpha=0.0,
+    extent_mode="global",
+    extent_pad_deg=3.0,
+    inset_frame=True,
+    inset_frame_lw=0.8,
+    ne_countries_path=None,
 ):
     fig = ax_main.figure
     # Status channel: default to requested mode; may be overwritten below
@@ -279,7 +344,7 @@ def draw_inset_overview(
             ax_inset.set_extent(_pad_box(aoi_box), crs=ccrs.PlateCarree())
             set_global = False
         elif extent_mode in ("country", "continent"):
-            cbox, cont_box, _ = _country_and_continent_boxes(bounds, ne_countries_path=ne_countries_path)
+            cbox, cont_box, _ = _country_and_continent_boxes(bounds, ne_countries_path=ne_countries_path, country_hint=country_hint)
             if extent_mode == "country" and cbox is not None:
                 ax_inset.set_extent(_pad_box(cbox), crs=ccrs.PlateCarree())
                 set_global = False
@@ -340,3 +405,4 @@ def draw_inset_overview(
         pass
 
     return ax_inset
+
