@@ -1,4 +1,5 @@
-# app.py — CartoZen Station Map Generator (Beta) with Inset Overview (patched)
+# === app.py ===
+# (top-level Streamlit app)
 
 from PIL import Image
 import streamlit as st
@@ -17,6 +18,7 @@ from utils.overlay_loader import overlay_gdf
 from utils.plot_helpers import dd_fmt_lon, dd_fmt_lat, dms_fmt_lon, dms_fmt_lat, draw_scale_bar
 from utils.config import shape_map, get_page_size
 from utils.inset_overview import draw_inset_overview
+NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Streamlit must set page config FIRST
@@ -42,7 +44,7 @@ except Exception:
     pass
 
 st.title("🗺️ CartoZen – Station Map Generator (Beta)")
-st.markdown("Welcome to the beta version of CartoZen. Upload your station data and generate custom maps easily.")
+st.markdown("Upload your station data and generate custom maps easily.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MAP VIEW
@@ -64,10 +66,11 @@ if view == "Map":
         if not auto_ext:
             buffer_deg = st.slider("Buffer around data (°)", 1, 20, 5)
 
-        # Overlay
+        # Overlay (MAIN MAP overlay)
         with st.expander("**Overlay**", expanded=False):
             ov_file = st.file_uploader("zip / GeoJSON / KML", ["zip", "geojson", "kml"])
             show_ov = st.checkbox("Show overlay", True)
+            ov_main_color = st.color_picker("Main overlay colour", "#0000ff")
 
         # Map colors
         with st.expander("**Map Colors**", expanded=False):
@@ -95,31 +98,43 @@ if view == "Map":
         # Elements + Fonts
         with st.expander("**Elements + Fonts**", expanded=False):
             leg_on = st.checkbox("Legend", True)
-            leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"])
+            leg_pos = st.selectbox(
+                "Legend pos",
+                [
+                    "upper left",
+                    "upper right",
+                    "lower left",
+                    "lower right",
+                    "center left",
+                    "center right",
+                ],
+            )
             sb_on = st.checkbox("Scale-bar", True)
             sb_len = st.slider("Bar length", 10, 500, 50, 10)
             sb_seg = st.slider("Segments", 2, 5, 3)
             sb_thk = st.slider("Bar thickness", 1, 50, 3)
-            sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
+            sb_pos = st.selectbox("Bar pos", ["Bottom-Left", "Bottom-Right", "Top-Left", "Top-Right"])
             sb_unit = st.selectbox("Units", ["km", "miles"])
             na_on = st.checkbox("North arrow", True)
-            na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"])
+            na_pos = st.selectbox("North pos", ["Top-Right", "Top-Left", "Bottom-Right", "Bottom-Left"])
             na_col = st.color_picker("North colour", "#000000")
 
-        # Inset overview controls
+        # Inset overview controls (INSET ONLY)
         with st.expander("**Inset overview**", expanded=False):
             inset_on = st.checkbox("Show inset", False)
-            inset_pos = st.selectbox("Inset pos", ["top right", "top left", "bottom right", "bottom left"], index=0)
+            inset_pos = st.selectbox(
+                "Inset pos", ["top right", "top left", "bottom right", "bottom left"], index=0
+            )
             inset_size = st.slider("Inset size (%)", 10, 40, 20)
-            inset_edge = st.color_picker("AOI edge colour", "#ff0000")
-            inset_ov = st.checkbox("Plot overlay in inset", True)
-            extent_mode = st.selectbox("Inset extent", ["global", "aoi", "country", "continent"], index=0) #various scaling levels for overview extent
-            extent_pad = st.slider("Inset extent padding (°)", 0.0, 10.0, 3.0, 0.5) #padding enabled
-            frame_on = st.checkbox("Inset frame", True) #Frame enabled for inset
-            frame_lw = st.slider("Inset frame width", 0.5, 3.0, 0.8, 0.1)
+            extent_mode = st.selectbox(
+                "Inset extent", ["global", "aoi", "country", "continent"], index=0
+            )
+            extent_pad = st.slider("Inset extent padding (°)", 0.0, 10.0, 3.0, 0.5)
             inset_rect_color = st.color_picker("AOI rectangle colour", "#ff0000")
-            inset_ov_color   = st.color_picker("Inset overlay colour", "#0000ff")
-
+            inset_ov = st.checkbox("Plot overlay in inset", True)
+            inset_ov_color = st.color_picker("Inset overlay colour", "#0000ff")
+            frame_on = st.checkbox("Inset frame", True)
+            frame_lw = st.slider("Inset frame width", 0.5, 3.0, 0.8, 0.1)
 
         # Font sizes
         with st.expander("**Font sizes**", expanded=False):
@@ -154,8 +169,8 @@ if view == "Map":
     # If we have a file and the legend/label choices, proceed
     if up_file and stn and at and lab:
         # Safer column auto-detection (case-insensitive)
-        lat_candidates = ["lat","latitude","lat_dd","y","ycoord","y_coord"]
-        lon_candidates = ["lon","long","longitude","lon_dd","x","xcoord","x_coord"]
+        lat_candidates = ["lat", "latitude", "lat_dd", "y", "ycoord", "y_coord"]
+        lon_candidates = ["lon", "long", "longitude", "lon_dd", "x", "xcoord", "x_coord"]
 
         lat_col = _find_col(df0.columns, lat_candidates)
         lon_col = _find_col(df0.columns, lon_candidates)
@@ -230,10 +245,12 @@ if view == "Map":
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
 
         if grid_on:
-            gl = ax.gridlines(draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid)
+            gl = ax.gridlines(
+                draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid
+            )
             gl.top_labels = True
             gl.right_labels = True
-            gl.xlabel_style = gl.ylabel_style = {'size': axis_f}
+            gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
             if axis_fmt == "DMS":
                 gl.xformatter = mticker.FuncFormatter(dms_fmt_lon)
                 gl.yformatter = mticker.FuncFormatter(dms_fmt_lat)
@@ -245,11 +262,11 @@ if view == "Map":
             ax.set_yticks(yt, crs=ccrs.PlateCarree())
             ax.tick_params(length=4, width=g_wid, color=g_col, labelsize=axis_f)
 
-        # Overlay
+        # Overlay (MAIN MAP)
         if ov_file and show_ov:
             try:
                 overlay_gdf(ov_file).to_crs("EPSG:4326").plot(
-                    ax=ax, edgecolor=inset_edge, facecolor="none", lw=1
+                    ax=ax, edgecolor=ov_main_color, facecolor="none", lw=1
                 )
             except Exception as e:
                 st.warning(f"Overlay could not be rendered: {e}")
@@ -258,14 +275,14 @@ if view == "Map":
         ax.scatter(
             df["Lon_DD"], df["Lat_DD"],
             s=m_size**2, c=m_col, marker=shape_map[shape],
-            transform=ccrs.PlateCarree(), zorder=5
+            transform=ccrs.PlateCarree(), zorder=5,
         )
 
         if show_lab:
             for _, r in df.iterrows():
                 ax.text(
                     r["Lon_DD"] + dx, r["Lat_DD"] + dy, str(r[lab]),
-                    fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo
+                    fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo,
                 )
 
         # Scale bar
@@ -276,13 +293,21 @@ if view == "Map":
         # North arrow
         if na_on:
             x, y = {
-                "Top-Right": (0.95, 0.95), "Top-Left": (0.05, 0.95),
-                "Bottom-Right": (0.95, 0.05), "Bottom-Left": (0.05, 0.05)
+                "Top-Right": (0.95, 0.95),
+                "Top-Left": (0.05, 0.95),
+                "Bottom-Right": (0.95, 0.05),
+                "Bottom-Left": (0.05, 0.05),
             }[na_pos]
             ax.annotate(
-                "N", xy=(x, y), xytext=(x, y - 0.1), xycoords="axes fraction",
-                ha="center", va="center", fontsize=north_f, color=na_col,
-                arrowprops=dict(facecolor=na_col, width=5, headwidth=15)
+                "N",
+                xy=(x, y),
+                xytext=(x, y - 0.1),
+                xycoords="axes fraction",
+                ha="center",
+                va="center",
+                fontsize=north_f,
+                color=na_col,
+                arrowprops=dict(facecolor=na_col, width=5, headwidth=15),
             )
 
         # Legend (cap very long lists)
@@ -299,16 +324,27 @@ if view == "Map":
             leg_text = "\n".join(header + rows)
             box = dict(boxstyle="round", fc="white", ec="black", alpha=0.8)
             pos_map = {
-                "upper left": (0.01, 0.99), "upper right": (0.99, 0.99),
-                "lower left": (0.01, 0.01), "lower right": (0.99, 0.01),
-                "center left": (0.01, 0.5), "center right": (0.99, 0.5)
+                "upper left": (0.01, 0.99),
+                "upper right": (0.99, 0.99),
+                "lower left": (0.01, 0.01),
+                "lower right": (0.99, 0.01),
+                "center left": (0.01, 0.5),
+                "center right": (0.99, 0.5),
             }
             xp, yp = pos_map[leg_pos]
             ax.text(
-                xp, yp, leg_text, transform=ax.transAxes, fontsize=legend_f,
+                xp,
+                yp,
+                leg_text,
+                transform=ax.transAxes,
+                fontsize=legend_f,
                 ha="left" if "left" in leg_pos else "right",
-                va=("top" if "upper" in leg_pos else "bottom" if "lower" in leg_pos else "center"),
-                bbox=box
+                va=(
+                    "top"
+                    if "upper" in leg_pos
+                    else "bottom" if "lower" in leg_pos else "center"
+                ),
+                bbox=box,
             )
 
         # Inset overview (call just before saving)
@@ -321,19 +357,35 @@ if view == "Map":
                 inset_pos=inset_pos,
                 inset_size_pct=inset_size,
                 aoi_edge_color=inset_rect_color,
-                overlay_edge_color=inset_ov_color,  # <--new
+                overlay_edge_color=inset_ov_color,
                 land_color=land_col,
                 ocean_color=ocean_col,
                 extent_mode=extent_mode,
                 extent_pad_deg=extent_pad,
                 inset_frame=frame_on,
                 inset_frame_lw=frame_lw,
+                ne_countries_path=NE_COUNTRIES_ZIP,
             )
+            # Surface the fallback status (if any)
+            used = getattr(fig, "_cz_inset_used", extent_mode)
+            reason = getattr(fig, "_cz_inset_reason", "ok")
+            if used != extent_mode:
+                st.info(
+                    "Inset extent fell back to **global**. "
+                    "(Tip: ensure Natural Earth 'admin_0_countries' is available or vendor it in the repo.)"
+                )
 
         # Watermark
         ax.text(
-            0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
-            ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6
+            0.99,
+            0.01,
+            "CartoZen Beta",
+            transform=ax.transAxes,
+            ha="right",
+            va="bottom",
+            fontsize=10,
+            color="gray",
+            alpha=0.6,
         )
 
         # ── Export ────────────────────────────────────────────────────────────
@@ -347,7 +399,9 @@ if view == "Map":
                 # Avoid tight bbox when inset active to prevent perceived shrink
                 fig.savefig(out, format=fmt.lower(), dpi=dpi)
             else:
-                fig.savefig(out, bbox_inches="tight", pad_inches=0.3, format=fmt.lower(), dpi=dpi)
+                fig.savefig(
+                    out, bbox_inches="tight", pad_inches=0.3, format=fmt.lower(), dpi=dpi
+                )
         except Exception:
             # Fallback (rare Cartopy bbox issues)
             fig.savefig(out, format=fmt.lower(), dpi=dpi)
@@ -360,7 +414,7 @@ if view == "Map":
             b64 = base64.b64encode(f.read()).decode()
         st.markdown(
             f'<a href="data:image/{fmt.lower()};base64,{b64}" download="station_map.{fmt.lower()}">📥 Download Map</a>',
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
         st.image(out, use_container_width=full)
 
