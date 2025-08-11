@@ -66,6 +66,10 @@ def draw_inset_overview(
         axes_class=type(ax_main),
         axes_kwargs=essential_cartopy,
     )
+    try:
+        ax_inset.set_in_layout(False)
+    except Exception:
+        pass
 
     ax_inset.set_global()
     ax_inset.add_feature(cfeature.OCEAN.with_scale("110m"), fc=ocean_color, lw=0)
