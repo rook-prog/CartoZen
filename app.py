@@ -113,6 +113,10 @@ if view == "Map":
             inset_size = st.slider("Inset size (%)", 10, 40, 20)
             inset_edge = st.color_picker("AOI edge colour", "#ff0000")
             inset_ov = st.checkbox("Plot overlay in inset", True)
+            extent_mode = st.selectbox("Inset extent", ["global", "aoi", "country", "continent"], index=0) #various scaling levels for overview extent
+            extent_pad = st.slider("Inset extent padding (°)", 0.0, 10.0, 3.0, 0.5) #padding enabled
+            frame_on = st.checkbox("Inset frame", True) #Frame enabled for inset
+            frame_lw = st.slider("Inset frame width", 0.5, 3.0, 0.8, 0.1)
 
         # Font sizes
         with st.expander("**Font sizes**", expanded=False):
@@ -316,6 +320,10 @@ if view == "Map":
                 aoi_edge_color=inset_edge,
                 land_color=land_col,
                 ocean_color=ocean_col,
+                extent_mode=extent_mode,
+                extent_pad_deg=extent_pad,
+                inset_frame=frame_on,
+                inset_frame_lw=frame_lw,
             )
 
         # Watermark
