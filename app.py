@@ -365,6 +365,7 @@ if view == "Map":
                 inset_frame=frame_on,
                 inset_frame_lw=frame_lw,
                 ne_countries_path=NE_COUNTRIES_ZIP,
+                country_hint="INDIA",
             )
             # Surface the fallback status (if any)
             used = getattr(fig, "_cz_inset_used", extent_mode)
