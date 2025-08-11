@@ -35,10 +35,22 @@ def draw_inset_overview(
     land_color="#f0e8d8",
     ocean_color="#cce6ff",
     aoi_fill_alpha=0.0,
+    extent_mode="global",        # NEW: "global" | "aoi" | "country" | "continent"
+    extent_pad_deg=3.0,           # padding for aoi/country/continent extents
+    inset_frame=True,             # NEW: show/hide frame
+    inset_frame_lw=0.8,           # NEW: frame linewidth
 ):
     """Figure-level inset that does not change main axes layout.
 
-    Parameters are identical to prior version.
+    Parameters
+    ----------
+    extent_mode : str
+        "global" (world), "aoi" (bounds+padded), "country" (country bbox),
+        or "continent" (continent bbox). Falls back gracefully on errors.
+    inset_frame : bool
+        Whether to draw a frame around the inset.
+    inset_frame_lw : float
+        Frame line width.
     """
     fig = ax_main.figure
     main_box = ax_main.get_position()  # in figure coordinates
@@ -80,11 +92,65 @@ def draw_inset_overview(
     ax_inset.set_zorder(99)
     ax_inset.patch.set_alpha(1.0)
 
-    # Basemap (global)
+    # Basemap
     ax_inset.add_feature(cfeature.OCEAN.with_scale("110m"), fc=ocean_color, lw=0)
     ax_inset.add_feature(cfeature.LAND.with_scale("110m"), fc=land_color, lw=0)
     ax_inset.add_feature(cfeature.COASTLINE.with_scale("110m"), lw=0.5)
-    ax_inset.set_global()
+
+    # ----- Extent logic ------------------------------------------------------
+    def _pad(b):
+        mnx, mxx, mny, mxy = b
+        return (mnx - extent_pad_deg, mxx + extent_pad_deg, mny - extent_pad_deg, mxy + extent_pad_deg)
+
+    set_global = True
+    try:
+        if extent_mode == "aoi":
+            # AOI (bounds) view with padding
+            ax_inset.set_extent(_pad((bounds[0], bounds[1], bounds[2], bounds[3])), crs=ccrs.PlateCarree())
+            set_global = False
+        elif extent_mode in ("country", "continent"):
+            from cartopy.io import shapereader as shpreader
+            from shapely.geometry import Point
+            shp = shpreader.natural_earth(resolution='110m', category='cultural', name='admin_0_countries')
+            recs = list(shpreader.Reader(shp).records())
+            # AOI centroid
+            cx = (bounds[0] + bounds[1]) / 2.0
+            cy = (bounds[2] + bounds[3]) / 2.0
+            pt = Point(cx, cy)
+            hit = None
+            for r in recs:
+                try:
+                    if r.geometry is not None and r.geometry.contains(pt):
+                        hit = r
+                        break
+                except Exception:
+                    continue
+            if hit is not None:
+                if extent_mode == "country":
+                    mnx, mny, mxx, mxy = hit.geometry.bounds
+                    ax_inset.set_extent(_pad((mnx, mxx, mny, mxy)), crs=ccrs.PlateCarree())
+                    set_global = False
+                else:  # continent
+                    cont = hit.attributes.get('CONTINENT')
+                    if cont:
+                        bxs = []
+                        for r in recs:
+                            if r.attributes.get('CONTINENT') == cont and r.geometry is not None:
+                                try:
+                                    bxs.append(r.geometry.bounds)
+                                except Exception:
+                                    pass
+                        if bxs:
+                            mnx = min(b[0] for b in bxs); mny = min(b[1] for b in bxs)
+                            mxx = max(b[2] for b in bxs); mxy = max(b[3] for b in bxs)
+                            ax_inset.set_extent(_pad((mnx, mxx, mny, mxy)), crs=ccrs.PlateCarree())
+                            set_global = False
+    except Exception:
+        # Any failure falls back to global
+        set_global = True
+
+    if set_global:
+        ax_inset.set_global()
 
     # Optional overlay
     if plot_overlay and overlay_path is not None:
@@ -117,13 +183,16 @@ def draw_inset_overview(
     )
     ax_inset.add_patch(rect)
 
-    # Minimal styling
+    # Frame styling
     try:
-        ax_inset.set_xticks([])
-        ax_inset.set_yticks([])
-        for spine in ax_inset.spines.values():
-            spine.set_visible(True)
-            spine.set_linewidth(0.8)
+        if inset_frame:
+            for spine in ax_inset.spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(inset_frame_lw)
+        else:
+            for spine in ax_inset.spines.values():
+                spine.set_visible(False)
+        ax_inset.set_xticks([]); ax_inset.set_yticks([])
     except Exception:
         pass
 
