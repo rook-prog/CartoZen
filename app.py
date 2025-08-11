@@ -305,6 +305,8 @@ if view == "Map":
                 land_color=land_col,
                 ocean_color=ocean_col,
             )
+        # force a draw so inset materializes before saving/showing
+        fig.canvas.draw()
 
         # Watermark + export (replace this block)
         ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
