@@ -1,5 +1,4 @@
-# app.py — CartoZen Station Map Generator (Beta) with Inset Overview
-# Full merged version: includes inset overview map controls and rendering
+# app.py — CartoZen Station Map Generator (Beta) with Inset Overview (patched)
 
 from PIL import Image
 import streamlit as st
@@ -24,11 +23,13 @@ from utils.inset_overview import draw_inset_overview
 st.set_page_config(page_title="CartoZen Beta", page_icon="🗺️", layout="wide")
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Helper: safer column detection
-
+# Helper: safer column detection (case-insensitive, stable order)
 def _find_col(cols, candidates):
-    cl = [c for c in cols for cand in candidates if c.lower() == cand]
-    return cl[0] if cl else None
+    lower = {c.lower(): c for c in cols}
+    for cand in candidates:
+        if cand in lower:
+            return lower[cand]
+    return None
 
 # Top navigation
 view = st.selectbox("View", ["Map", "About", "Changelog"])
@@ -122,8 +123,9 @@ if view == "Map":
             north_f = st.slider("North arrow", 10, 30, 18)
 
         # Legend/labels & export settings depend on data being uploaded
-        if "up_file" in locals() and up_file:
-            df0 = pd.read_csv(up_file) if up_file.name.endswith("csv") else pd.read_excel(up_file)
+        if up_file:
+            is_csv = up_file.name.lower().endswith(".csv")
+            df0 = pd.read_csv(up_file) if is_csv else pd.read_excel(up_file)
             df_cols = df0.columns
             with st.expander("**Legend / Label columns**", expanded=False):
                 stn = st.selectbox("Station ID", df_cols)
@@ -186,10 +188,14 @@ if view == "Map":
             )
             st.stop()
 
-        # Extent
+        # Extent (pad if single-point to avoid zero width/height)
         if auto_ext:
             lo, hi = df["Lon_DD"].agg(["min", "max"])
             la, lb = df["Lat_DD"].agg(["min", "max"])
+            if hi == lo:
+                hi, lo = hi + 0.01, lo - 0.01
+            if lb == la:
+                lb, la = lb + 0.01, la - 0.01
             bounds = (
                 lo - (hi - lo) * margin / 100.0,
                 hi + (hi - lo) * margin / 100.0,
@@ -202,8 +208,7 @@ if view == "Map":
         # Plot
         halo = [pe.withStroke(linewidth=3, foreground="white")]
         fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
-        fig.set_size_inches(*get_page_size(p_sz, ori), forward=True)
-        ax = plt.axes(projection=ccrs.PlateCarree())
+        ax = fig.add_subplot(111, projection=ccrs.PlateCarree())
         ax.set_extent(bounds)
         fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
@@ -236,7 +241,9 @@ if view == "Map":
         # Overlay
         if ov_file and show_ov:
             try:
-                overlay_gdf(ov_file).to_crs("EPSG:4326").plot(ax=ax, edgecolor="red", facecolor="none", lw=1)
+                overlay_gdf(ov_file).to_crs("EPSG:4326").plot(
+                    ax=ax, edgecolor=inset_edge, facecolor="none", lw=1
+                )
             except Exception as e:
                 st.warning(f"Overlay could not be rendered: {e}")
 
@@ -271,9 +278,14 @@ if view == "Map":
                 arrowprops=dict(facecolor=na_col, width=5, headwidth=15)
             )
 
-        # Legend
+        # Legend (cap very long lists)
         if leg_on:
-            rows = df[[stn, at]].astype(str).agg(" – ".join, axis=1).tolist()
+            rows = df[[stn, at]].astype(str).agg(" – ".join, axis=1)
+            max_items = 50
+            if len(rows) > max_items:
+                rows = list(rows.head(max_items)) + [f"... (+{len(df)-max_items} more)"]
+            else:
+                rows = list(rows)
             header = [head1] if head1 else []
             if head2:
                 header.append(head2)
@@ -305,26 +317,31 @@ if view == "Map":
                 land_color=land_col,
                 ocean_color=ocean_col,
             )
-        # force a draw so inset materializes before saving/showing
-        fig.canvas.draw()
 
-        # Watermark + export (replace this block)
-        ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
-                ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6)
+        # Watermark
+        ax.text(
+            0.99, 0.01, "CartoZen Beta", transform=ax.transAxes,
+            ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6
+        )
 
+        # ── Export ────────────────────────────────────────────────────────────
         tmp = tempfile.mkdtemp()
         out = os.path.join(tmp, f"map.{fmt.lower()}")
 
-        # Force render and try tight; fall back if Cartopy returns empty bboxes
+        fig.canvas.draw()  # ensure artists realized
+
         try:
-            fig.canvas.draw()
-            fig.savefig(out, bbox_inches="tight", pad_inches=0.3,
-                        format=fmt.lower(), dpi=dpi)
+            if inset_on:
+                # Avoid tight bbox when inset active to prevent perceived shrink
+                fig.savefig(out, format=fmt.lower(), dpi=dpi)
+            else:
+                fig.savefig(out, bbox_inches="tight", pad_inches=0.3, format=fmt.lower(), dpi=dpi)
         except Exception:
+            # Fallback (rare Cartopy bbox issues)
             fig.savefig(out, format=fmt.lower(), dpi=dpi)
 
         plt.close()
-
+        # ─────────────────────────────────────────────────────────────────────
 
         # Download link + preview
         with open(out, "rb") as f:
