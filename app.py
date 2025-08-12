@@ -221,7 +221,7 @@ if view == "Map":
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
         if grid_on:
             gl = ax.gridlines(draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid)
-            gl.top_labels = gl.right_labels = False
+            gl.top_labels = gl.right_labels = True
             gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
             gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
             gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
@@ -236,7 +236,7 @@ if view == "Map":
 
             ax.tick_params(
                 axis="both", direction="out", length=4, width=g_wid, color=g_col,
-                labelsize=axis_f, bottom=True, top=True, left=True, right=True
+                labelsize=axis_f, bottom=True, top=False, left=True, right=False
             )
 
         # Overlay on main map
