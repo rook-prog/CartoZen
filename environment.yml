@@ -1,0 +1,21 @@
+name: cartozen
+channels: [conda-forge]
+dependencies:
+  - python=3.11
+  - streamlit
+  - matplotlib
+  - numpy
+  - pandas
+  - shapely>=2.0
+  - pyproj
+  - geopandas
+  - fiona
+  - cartopy
+  - pillow
+  - gdal
+  - proj
+  - geos
+  # optional
+  - pip
+  - pip:
+      - adjustText
