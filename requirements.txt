@@ -3,6 +3,7 @@ matplotlib
 numpy
 pandas
 pillow
+utm
 shapely
 pyproj
 geopandas
