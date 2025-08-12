@@ -123,6 +123,9 @@ if view == "Map":
             inset_label_halo  = st.checkbox("Inset label halo", True)
             inset_label_halo_w= st.slider("Inset label halo width", 0.5, 4.0, 2.5, 0.1)
             inset_label_align = st.selectbox("Inset label align", ["left","center","right"], index=0)
+            inset_lbl_dx = st.slider("Inset label offset X (px)", -30, 30, 6)
+            inset_lbl_dy = st.slider("Inset label offset Y (px)", -30, 30, 4)
+
             # --- Cluster inset sizing & styles ---
             cluster_inset_size_pct = st.slider("Cluster inset size (%)", 10, 40, 18)
             cluster_marker_size    = st.slider("Inset marker size", 6, 36, 16)
@@ -288,6 +291,7 @@ if view == "Map":
                 label_align=inset_label_align,
                 label_halo=inset_label_halo,
                 label_halo_width=float(inset_label_halo_w),
+                label_offset_px=(6,4)
                 anchor=cluster_anchor,
                 offset_frac=float(cluster_offset_frac),        # distance from cluster centroid (figure fraction)
                 frame_lw=float(cluster_frame_lw),              # inset frame thickness
