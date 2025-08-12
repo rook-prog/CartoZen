@@ -27,6 +27,7 @@ from utils.inset_overview import draw_inset_overview
 from utils.cluster_utils import greedy_cluster
 from utils.label_declutter import declutter_texts
 from utils.local_inset_clusters import draw_cluster_insets
+from utils.font_utils import get_style  # <— NEW
 
 NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
 
@@ -86,6 +87,7 @@ if view == "Map":
             show_lab = st.checkbox("Show labels", True)
             dx = st.slider("Label offset °lon", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
             dy = st.slider("Label offset °lat", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
+            label_style = st.selectbox("Label style", ["Normal","Bold","Italic","Bold-Italic"], index=0)  # NEW
         with st.expander("**Grid & Axis**", expanded=False):
             grid_on = st.checkbox("Grid", True)
             g_int = st.selectbox("Interval °", [0.1,0.25,0.5,1,2,5,10], index=2)
@@ -93,18 +95,22 @@ if view == "Map":
             g_style = st.selectbox("Style", ["solid","dashed","dotted"])
             g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
             axis_fmt = st.radio("Label format", ["Decimal","DMS"])
+            lat_dir = st.radio("Latitude axis direction", ["Ascending ↑","Descending ↓"], index=0)  # NEW
         with st.expander("**Elements + Fonts**", expanded=False):
             leg_on = st.checkbox("Legend", True)
-            leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"]) 
+            leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"])
+            legend_style = st.selectbox("Legend text style", ["Normal","Bold","Italic","Bold-Italic"], index=0)  # NEW
             sb_on = st.checkbox("Scale-bar", True)
             sb_len = st.slider("Bar length", 10, 500, 50, 10)
             sb_seg = st.slider("Segments", 2, 5, 3)
             sb_thk = st.slider("Bar thickness", 1, 50, 3)
-            sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"]) 
-            sb_unit = st.selectbox("Units", ["km","miles"]) 
+            sb_pos = st.selectbox("Bar pos", ["Bottom-Left","Bottom-Right","Top-Left","Top-Right"])
+            sb_unit = st.selectbox("Units", ["km","miles"])
+            sb_style = st.selectbox("Scale text style", ["Normal","Bold","Italic","Bold-Italic"], index=0)  # NEW
             na_on = st.checkbox("North arrow", True)
-            na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"]) 
+            na_pos = st.selectbox("North pos", ["Top-Right","Top-Left","Bottom-Right","Bottom-Left"])
             na_col = st.color_picker("North colour", "#000000")
+            north_style = st.selectbox("North text style", ["Normal","Bold","Italic","Bold-Italic"], index=0)  # NEW
         with st.expander("**Inset overview**", expanded=False):
             inset_on = st.checkbox("Show inset", False)
             inset_pos = st.selectbox("Inset pos", ["top right","top left","bottom right","bottom left"], index=0)
@@ -123,7 +129,6 @@ if view == "Map":
             show_cluster_counts = st.checkbox("Show cluster counts on map", True)
             local_insets = st.checkbox("Local insets for largest clusters", False)
             max_insets = st.slider("Number of local insets", 0, 3, 2)
-            # Advanced local-inset formatting & placement
             cluster_anchor = st.selectbox(
                 "Cluster inset anchor",
                 [
@@ -141,7 +146,6 @@ if view == "Map":
             inset_label_align = st.selectbox("Inset label align", ["left","center","right"], index=0)
             inset_lbl_dx = st.slider("Inset label offset X (px)", -30, 30, 6)
             inset_lbl_dy = st.slider("Inset label offset Y (px)", -30, 30, 4)
-            # Cluster inset sizing
             cluster_inset_size_pct = st.slider("Cluster inset size (%)", 10, 40, 18)
             cluster_marker_size    = st.slider("Inset marker size", 6, 36, 16)
             _default_inset_lbl = max(6, min(20, int(st.session_state.get("Labels", 8) * 0.8)))
@@ -168,14 +172,13 @@ if view == "Map":
         else:
             stn = at = lab = head1 = head2 = None
         with st.expander("**Export**", expanded=False):
-            fmt = st.selectbox("Format", ["PNG","JPEG"]) 
+            fmt = st.selectbox("Format", ["PNG","JPEG"])
             dpi = st.slider("DPI", 100, 600, 300)
-            p_sz = st.selectbox("Page", ["A4","A3","Letter"]) 
-            ori = st.selectbox("Orientation", ["Landscape","Portrait"]) 
+            p_sz = st.selectbox("Page", ["A4","A3","Letter"])
+            ori = st.selectbox("Orientation", ["Landscape","Portrait"])
             full = st.checkbox("Full-width preview", False)
 
     if up_file and stn and at and lab:
-        # Coordinates
         lat_col = _find_col(df0.columns, ["lat","latitude","lat_dd","y","ycoord","y_coord"])
         lon_col = _find_col(df0.columns, ["lon","long","longitude","lon_dd","x","xcoord","x_coord"])
         if not lat_col or not lon_col:
@@ -189,7 +192,6 @@ if view == "Map":
         if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
             st.error("❌ Coordinate conversion failed."); st.stop()
 
-        # Extent (safe)
         if auto_ext:
             lo, hi = df["Lon_DD"].agg(["min","max"]) ; la, lb = df["Lat_DD"].agg(["min","max"])
             if hi == lo: hi, lo = hi + 0.01, lo - 0.01
@@ -204,19 +206,17 @@ if view == "Map":
             bounds = get_buffered_extent(df, buffer_deg)
         bounds = _safe_extent(bounds)
 
-        # Figure
         halo = [pe.withStroke(linewidth=3, foreground="white")]
         fig = plt.figure(figsize=get_page_size(p_sz, ori), dpi=dpi)
         ax = fig.add_subplot(111, projection=ccrs.PlateCarree())
         ax.set_extent(bounds, crs=ccrs.PlateCarree())
         fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
-        # Base
         ax.add_feature(cfeature.LAND.with_scale("50m"), fc=land_col)
         ax.add_feature(cfeature.OCEAN.with_scale("50m"), fc=ocean_col)
         ax.add_feature(cfeature.BORDERS, ls=":"); ax.add_feature(cfeature.COASTLINE)
 
-        # Grid
+        # Grid + ticks: keep ticks/labels even if grid is off
         xt = np.arange(bounds[0], bounds[1] + g_int, g_int)
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
         if grid_on:
@@ -225,28 +225,29 @@ if view == "Map":
             gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
             gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
             gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
-        else:
-            ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
-            ax.tick_params(length=4, width=g_wid, color=g_col, labelsize=axis_f)
+        # Always set ticks/labels
+        ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
+        ax.tick_params(axis="both", direction="out", length=4, width=g_wid, color=g_col, labelsize=axis_f)
 
-        # Overlay on main map
+        # Optional lat direction
+        if lat_dir == "Descending ↓":
+            ax.set_ylim(ax.get_ylim()[::-1])
+
         if ov_file and show_ov:
             try:
                 overlay_gdf(ov_file).to_crs("EPSG:4326").plot(ax=ax, edgecolor=ov_main_color, facecolor="none", lw=1)
             except Exception as e:
                 st.warning(f"Overlay could not be rendered: {e}")
 
-        # ===== Cluster & Declutter integration =====
         plot_df = df.copy(); clusters = None
         if cluster_on:
             rep_df, clusters = greedy_cluster(df, "Lat_DD", "Lon_DD", float(cluster_km))
             plot_df = rep_df
 
-        # Markers
         ax.scatter(plot_df["Lon_DD"], plot_df["Lat_DD"], s=m_size**2, c=m_col, marker=shape_map[shape], transform=ccrs.PlateCarree(), zorder=5)
 
-        # Labels (counts for clusters; label-of-representative otherwise)
         texts = []
+        lbl_style_kwargs = get_style(label_style)  # NEW
         if show_lab:
             if cluster_on and clusters is not None:
                 for _, r in plot_df.iterrows():
@@ -254,19 +255,18 @@ if view == "Map":
                     size = int(r.get("cluster_size", 1))
                     rep_idx = clusters.get(cid, [None])[0]
                     label = str(size) if (size > 1 and show_cluster_counts) else (str(df.iloc[rep_idx][lab]) if rep_idx is not None and lab in df.columns else "")
-                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, label, fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo, clip_on=True)
+                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, label, fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo, clip_on=True, **lbl_style_kwargs)
                     texts.append(t)
             else:
                 for _, r in plot_df.iterrows():
-                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, str(r[lab]), fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo, clip_on=True)
+                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, str(r[lab]), fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo, clip_on=True, **lbl_style_kwargs)
                     texts.append(t)
 
-        # Declutter labels if requested
         if show_lab and declutter_on and texts:
             declutter_texts(ax, texts)
 
-        # Local mini-insets for biggest clusters (adjacent placement + label styles)
         if cluster_on and local_insets and clusters:
+            inset_lbl_style = get_style(label_style)  # reuse label style for mini-inset labels
             draw_cluster_insets(
                 ax, df, clusters,
                 max_insets=max_insets, pad_deg=0.2, box_frac=float(cluster_inset_size_pct)/100.0,
@@ -277,9 +277,9 @@ if view == "Map":
                 label_offset_px=(inset_lbl_dx, inset_lbl_dy),
                 anchor=cluster_anchor, offset_frac=float(cluster_offset_frac),
                 frame_lw=float(cluster_frame_lw), link=True, link_color=conn_color, link_lw=float(conn_lw),
+                fontweight=inset_lbl_style.get("fontweight"), fontstyle=inset_lbl_style.get("fontstyle"),
             )
 
-        # Global inset overview (figure-level)
         if inset_on:
             draw_inset_overview(
                 ax_main=ax, bounds=bounds,
@@ -292,7 +292,6 @@ if view == "Map":
                 ne_countries_path=NE_COUNTRIES_ZIP,
             )
 
-        # Legend / Scale / North Arrow (draw after labels, clip to axes)
         if leg_on:
             rows = df[[stn, at]].astype(str).agg(" – ".join, axis=1)
             max_items = 50
@@ -302,21 +301,23 @@ if view == "Map":
             box = dict(boxstyle="round", fc="white", ec="black", alpha=0.8)
             pos_map = {"upper left": (0.01, 0.99), "upper right": (0.99, 0.99), "lower left": (0.01, 0.01), "lower right": (0.99, 0.01), "center left": (0.01, 0.5), "center right": (0.99, 0.5)}
             xp, yp = pos_map[leg_pos]
-            lt = ax.text(xp, yp, leg_text, transform=ax.transAxes, fontsize=legend_f, ha=("left" if "left" in leg_pos else "right"), va=("top" if "upper" in leg_pos else "bottom" if "lower" in leg_pos else "center"), bbox=box)
+            leg_style_kwargs = get_style(legend_style)
+            lt = ax.text(xp, yp, leg_text, transform=ax.transAxes, fontsize=legend_f, ha=("left" if "left" in leg_pos else "right"), va=("top" if "upper" in leg_pos else "bottom" if "lower" in leg_pos else "center"), bbox=box, **leg_style_kwargs)
             lt.set_clip_on(True); lt.set_clip_path(ax.patch)
         if sb_on:
             km_len = sb_len if sb_unit == "km" else sb_len * 1.60934
-            draw_scale_bar(ax, bounds, km_len, sb_seg, sb_thk, sb_pos, sb_unit, sb_f)
+            sb_style_kwargs = get_style(sb_style)
+            draw_scale_bar(ax, bounds, km_len, sb_seg, sb_thk, sb_pos, sb_unit, sb_f,
+                           fontweight=sb_style_kwargs.get("fontweight"), fontstyle=sb_style_kwargs.get("fontstyle"))
         if na_on:
             pos = {"Top-Right": (0.95, 0.95), "Top-Left": (0.05, 0.95), "Bottom-Right": (0.95, 0.05), "Bottom-Left": (0.05, 0.05)}[na_pos]
-            na = ax.annotate("N", xy=pos, xytext=(pos[0], pos[1] - 0.1), xycoords="axes fraction", ha="center", va="center", fontsize=north_f, color=na_col, arrowprops=dict(facecolor=na_col, width=5, headwidth=15))
+            north_style_kwargs = get_style(north_style)
+            na = ax.annotate("N", xy=pos, xytext=(pos[0], pos[1] - 0.1), xycoords="axes fraction", ha="center", va="center", fontsize=north_f, color=na_col, arrowprops=dict(facecolor=na_col, width=5, headwidth=15), **north_style_kwargs)
             na.set_clip_on(True); na.set_clip_path(ax.patch)
 
-        # Watermark
         wm = ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes, ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6)
         wm.set_clip_on(True); wm.set_clip_path(ax.patch)
 
-        # Export (avoid tight bbox when any inset present)
         tmp = tempfile.mkdtemp(); out = os.path.join(tmp, f"map.{fmt.lower()}")
         fig.canvas.draw()
         try:
