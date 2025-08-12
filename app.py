@@ -1,8 +1,7 @@
-# app.py — CartoZen main app with Inset fixes, clean color wiring, and Declutter/Cluster
-# NOTE: This expects the three utils from the other canvas to be present:
-#   utils/cluster_utils.py, utils/label_declutter.py, utils/local_inset_clusters.py
-# and the inset module from the Inset & Color patch:
-#   utils/inset_overview.py
+# app.py — CartoZen with Inset fixes, independent colours, Declutter/Cluster, and Elements reliably drawn
+# Requires:
+#   utils/inset_overview.py (your latest)
+#   utils/cluster_utils.py, utils/label_declutter.py, utils/local_inset_clusters.py (updated)
 
 from PIL import Image
 import streamlit as st
@@ -99,7 +98,6 @@ if view == "Map":
             inset_ov_color = st.color_picker("Inset overlay colour", "#0000ff")
             frame_on = st.checkbox("Inset frame", True)
             frame_lw = st.slider("Inset frame width", 0.5, 3.0, 0.8, 0.1)
-        # NEW: Declutter & Cluster
         with st.expander("**Declutter & Cluster**", expanded=False):
             declutter_on = st.checkbox("Avoid label overlap (repel)", False)
             cluster_on = st.checkbox("Cluster nearby stations", False)
@@ -203,46 +201,52 @@ if view == "Map":
         # Markers
         ax.scatter(plot_df["Lon_DD"], plot_df["Lat_DD"], s=m_size**2, c=m_col, marker=shape_map[shape], transform=ccrs.PlateCarree(), zorder=5)
 
-        # Labels (optionally counts for clusters)
+        # Labels (optionally counts for clusters; safe fallback to representative member)
         texts = []
         if show_lab:
             if cluster_on and clusters is not None:
                 for _, r in plot_df.iterrows():
                     cid = int(r.get("cluster_id", -1))
                     size = int(r.get("cluster_size", 1))
-                    # representative original row index for this cluster
                     rep_idx = clusters.get(cid, [None])[0]
-
                     if size > 1 and show_cluster_counts:
-                        label = str(size)  # show cluster size
+                        label = str(size)
                     else:
-                        # fall back to a representative station's label from the original df
-                        label = (
-                            str(df.iloc[rep_idx][lab])
-                            if rep_idx is not None and lab in df.columns
-                            else ""
-                        )
-
-                    t = ax.text(
-                        r["Lon_DD"] + dx,
-                        r["Lat_DD"] + dy,
-                        label,
-                        fontsize=label_f,
-                        transform=ccrs.PlateCarree(),
-                        path_effects=halo,
-                    )
+                        label = (str(df.iloc[rep_idx][lab]) if rep_idx is not None and lab in df.columns else "")
+                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, label, fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo)
                     texts.append(t)
-
             else:
                 for _, r in plot_df.iterrows():
                     t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, str(r[lab]), fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo)
                     texts.append(t)
+
+        # Declutter labels if requested
         if show_lab and declutter_on and texts:
             declutter_texts(ax, texts)
 
-        # Optional local mini-insets for biggest clusters
+        # ── Elements (Legend / Scale bar / North arrow) — always after labels ──
+        if leg_on:
+            rows = df[[stn, at]].astype(str).agg(" – ".join, axis=1)
+            max_items = 50
+            rows = list(rows.head(max_items)) + ([f"... (+{len(df)-max_items} more)"] if len(df) > max_items else [])
+            header = [h for h in [head1, head2] if h]
+            leg_text = "\n".join(header + rows)
+            box = dict(boxstyle="round", fc="white", ec="black", alpha=0.8)
+            pos_map = {"upper left": (0.01, 0.99), "upper right": (0.99, 0.99), "lower left": (0.01, 0.01), "lower right": (0.99, 0.01), "center left": (0.01, 0.5), "center right": (0.99, 0.5)}
+            xp, yp = pos_map[leg_pos]
+            ax.text(xp, yp, leg_text, transform=ax.transAxes, fontsize=legend_f, ha=("left" if "left" in leg_pos else "right"), va=("top" if "upper" in leg_pos else "bottom" if "lower" in leg_pos else "center"), bbox=box)
+
+        if sb_on:
+            km_len = sb_len if sb_unit == "km" else sb_len * 1.60934
+            draw_scale_bar(ax, bounds, km_len, sb_seg, sb_thk, sb_pos, sb_unit, sb_f)
+
+        if na_on:
+            pos = {"Top-Right": (0.95, 0.95), "Top-Left": (0.05, 0.95), "Bottom-Right": (0.95, 0.05), "Bottom-Left": (0.05, 0.05)}[na_pos]
+            ax.annotate("N", xy=pos, xytext=(pos[0], pos[1] - 0.1), xycoords="axes fraction", ha="center", va="center", fontsize=north_f, color=na_col, arrowprops=dict(facecolor=na_col, width=5, headwidth=15))
+
+        # Optional local mini-insets for biggest clusters (adjacent placement + labels)
         if cluster_on and local_insets and clusters:
-            draw_cluster_insets(ax, df, clusters, max_insets=max_insets, land_color=land_col, ocean_color=ocean_col, marker_color=m_col)
+            draw_cluster_insets(ax, df, clusters, max_insets=max_insets, pad_deg=0.2, box_frac=0.18, land_color=land_col, ocean_color=ocean_col, marker_color=m_col, marker_size=16, show_labels=True, label_col=lab, label_fontsize=max(6, int(label_f*0.8)), adjacent=True, frame_lw=0.6, link=True)
 
         # Global inset overview
         if inset_on:
