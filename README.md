@@ -1,110 +1,53 @@
-# 🗺️ CartoZen Beta – Interactive Station Map Generator
+# CartoZen v1.0.0 — Station Map Generator (Stable)
 
-![CartoZen Logo](assets/logo_small.png)
+**Released:** 2025-08-12
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16566366.svg)](https://doi.org/10.5281/zenodo.16566366)
+CartoZen turns your station table into a polished map—fast. It combines **Streamlit** + **Matplotlib/Cartopy** for a dependable, offline‑friendly mapping tool.
 
-**CartoZen** is a lightweight, modular, and interactive map generator that helps you create high-quality station maps from geospatial data files like CSV or Excel.
+## ✨ Highlights
+- **Inset overview**: global / AOI / country / continent (uses local Natural Earth zip if available).
+- **Independent colours**: AOI rectangle vs inset overlay.
+- **Dateline‑safe**: robust longitude normalization and multiple hit tests (contains → intersects → bbox → nearest).
+- **Safe exports**: avoids `bbox_inches="tight"` whenever any inset exists, to keep full page frames.
+- **Clipped elements**: legend, scale bar, north arrow, watermark are all `clip_on=True` to the map axes.
+- **Declutter & Cluster**: greedy distance clustering with counts; optional local mini‑insets around large clusters with advanced styling.
+- **Coordinate handling**: DD/DMS/UTM parsing with cleaning; UTM converts via zone/hemisphere.
 
-Whether you're a researcher, student, educator, or content creator — CartoZen offers an intuitive interface to plot latitude-longitude data over styled maps with complete layout control.
+## 📦 Requirements
+- Python **3.10+**
+- Core: `streamlit`, `matplotlib`, `cartopy`, `shapely`, `geopandas`, `fiona`, `pyproj`, `pandas`, `numpy`, `Pillow`
+- Optional: `adjustText` (improves label declutter)
+- Data (optional but recommended): `assets/ne_10m_admin_0_countries.zip` for country/continent extent logic
 
----
-
-## 🚦 Beta Release Notice
-
-This is the **first public release** of CartoZen (Beta), currently available for **trial and testing**.  
-We welcome feedback, bug reports, and suggestions for improving the app before the stable version.
-
-> 🔒 Internal dev version: `v3.3`  
-> 🌐 Public beta tag: `v0.9.1 Beta`
-
----
-
-## ✨ Features
-
-- 📌 **Upload station data** (CSV or XLSX with lat/lon columns)
-- 🗺️ Generate map using **Cartopy + Matplotlib** backend
-- 📐 Customize **page size** and **orientation**
-- 🧭 Show **coordinate labels on all 4 sides** (top, bottom, left, right)
-- 🎨 Set **land and ocean colors** using color pickers
-- 🔢 Avoid overlapping ticks with **manual/auto toggle**
-- 🧾 Margins respected using `subplots_adjust`
-
----
-
-## 📂 Project Structure
-
-```
-cartozen/
-├── app.py # Main Streamlit app
-├── utils/
-│ ├── config.py # Settings and constants
-│ ├── coord_utils.py # DMS to DD converter functions
-│ ├── overlay_loader.py # Overlay file support (future)
-│ └── plot_helpers.py # Map rendering utilities
-├── assets/
-│ └── logo.png # App logo or banner image
-├── requirements.txt # Python dependencies
-├── LICENSE # BSD 3-Clause license
-└── USAGE.md # Fair use and citation policy
-```
-
----
-
-## ⚙️ Installation
-
-Ensure Python 3.9+ is installed.
-
+## 🚀 Quick start
 ```bash
-# Clone the repository
-git clone https://github.com/rook-prog/CartoZen.git
-cd CartoZen
+# create & activate a virtual env (example)
+python -m venv .venv && source .venv/bin/activate
 
-# Install dependencies
-pip install -r requirements.txt
-```
+# install deps
+pip install -r requirements.txt  # or install the packages listed above
 
----
-
-## ▶️ Run the App
-
-```bash
+# run
 streamlit run app.py
 ```
 
-Steps:
-1. Upload your CSV/Excel file with `Latitude` and `Longitude`
-2. Adjust colors, layout, margins, and orientation
-3. View map output (download/export support coming soon)
+## 📑 Usage
+See **USAGE.md** for detailed, field‑tested steps and tips.
 
----
+## 🔧 File layout (key files)
+- `app.py` – Streamlit app (merged build: advanced insets + cluster + safe export)
+- `utils/` – helpers: coordinate conversion, overview insets, clustering, declutter, overlay loading, plotting helpers
+- `assets/` – optional Natural Earth admin layer zip (`ne_10m_admin_0_countries.zip`)
 
-## 📌 Planned Features
+## 🧩 Data expectations
+Provide latitude/longitude columns (DD or DMS) or UTM columns (E, N, Zone, Hemisphere letter). The app auto‑detects sensible column names (`lat`, `lon`, `x`, `y`, etc.).
 
-| Feature                   | Status    |
-|---------------------------|-----------|
-| PDF export support        | 🔄 Planned |
-| Style preset saving       | 🔄 Planned |
-| GeoJSON/AOI overlay       | 🔄 Planned |
-| Attribute-based legends   | 🔄 Planned |
+## 📝 Changelog
+See **changelog.md** — first stable: v1.0.0 (2025-08-12).
 
----
+## ⚠️ Known issues
+See **KNOWN_ISSUES.md** for current caveats and suggested workarounds.
 
-## 📣 Contribute or Report Issues
-
-We're in beta!  
-Please report bugs or suggest features via [GitHub Issues](https://github.com/rook-prog/CartoZen/issues).
-
----
-
-## 📜 License and Usage
-
-This project is licensed under the **BSD 3-Clause License**.  
-Please also review the [Fair Use and Citation Policy](USAGE.md) before using or modifying CartoZen.
-
-> For citation:  
-> **Srijith B. (2025). CartoZen: An Interactive Station Map Generator. GitHub: https://github.com/rook-prog/CartoZen**
-
----
-
-_Developed with ❤️ by [Srijith B](https://github.com/rook-prog)_
+## 🙏 Credits
+- Natural Earth data (public domain)
+- Cartopy/Matplotlib/Shapely/GeoPandas communities

@@ -1,21 +1,23 @@
+# Changelog — CartoZen
 
-# Changelog – CartoZen Beta
+All notable changes will be documented in this file.
 
-## v0.9.1 Beta (July 29, 2025)
-### New Features
-- ✅ Watermark support (toggleable with custom text)
-- ✅ Land/Water color customization via sidebar
-- ✅ Gridline label support on all sides (top, bottom, left, right)
+## v1.0.0 — 2025-08-12 — First stable
+**Added**
+- Inset overview with robust extent modes: global, aoi, country, continent (uses local Natural Earth zip when present).
+- Safe export behaviour: skips `bbox_inches="tight"` when any inset exists to preserve page frames.
+- Elements (legend, scale bar, north arrow) are clipped to map axes in merged build.
+- Declutter & Cluster: greedy distance clustering with counts; local mini‑insets near large clusters with advanced styling and connectors.
+- Safe extent helper to clamp extents and enforce non‑zero spans (main map and insets).
 
-### Bug Fixes
-- 🛠️ Fixed crash due to mismatched coordinate format (DD with DMS toggle)
-- 🛠️ Removed debug messages for cleaner Streamlit output
-- 🛠️ Resolved top-right label display issues in map
+**Improved**
+- Dateline‑safe longitudes and multiple hit tests (contains → intersects → bbox → nearest) for country/continent detection.
+- Overlay pipeline with auto‑reprojection to `EPSG:4326`.
 
-### Planned Features
-- ⏳ Shapefile overlay support (in progress)
-- ⏳ Toggle for legend format: station ID vs. station + attribute
-- ⏳ Export settings: DPI, orientation, and format selection
-- ⏳ Multipage layout using `st.selectbox`
+**Notes**
+- This release promotes the long‑running beta into a **stable** baseline. Experimental font styling was removed to prioritise stability.
 
-For full project details, visit: **https://github.com/rook-prog/CartoZen**
+---
+
+### Earlier (beta) work
+Multiple beta iterations occurred prior to 2025-08-12; see repository history for granular changes.
