@@ -2,11 +2,11 @@ streamlit
 matplotlib
 numpy
 pandas
+pillow
 shapely>=2.0
 pyproj
 geopandas
 fiona
+gdal
 cartopy
-pillow
-# optional, for nicer label repulsion if you use the declutter utility
-adjustText
+adjustText    # optional
