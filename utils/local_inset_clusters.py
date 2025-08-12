@@ -1,7 +1,9 @@
-# utils/local_inset_clusters.py — MINIMAL PATCH (no font kwargs)
-# • Applies label_offset_px via xytext/textcoords
-# • Interprets label_align as side-of-point and auto-fixes dx sign
-# • Keeps original API (no new parameters)
+# utils/local_inset_clusters.py — ADVANCED
+# New features
+# • Label styling in mini‑insets (color, halo, size, alignment)
+# • Anchor the inset around each cluster: top/bottom/left/right/center variants
+# • Custom connector color & thickness
+# • Still sets fig._cz_has_local_insets for export logic
 
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as pe
@@ -17,6 +19,7 @@ def _data_to_fig_xy(ax, lon, lat):
 
 def _resolve_anchor(anchor: str):
     a = (anchor or "top right").strip().lower()
+    # support a few synonyms
     aliases = {
         "right": "center right",
         "left": "center left",
@@ -34,10 +37,13 @@ def _resolve_anchor(anchor: str):
 
 
 def _place_rect_near(ax_main, cx, cy, w, h, anchor: str, offset: float):
+    """Return [left, bottom, w, h] in figure coords for a rect anchored near (cx,cy)."""
     fig = ax_main.figure
     mb = ax_main.get_position()
     fx, fy = _data_to_fig_xy(ax_main, cx, cy)
+    # anchor → bottom-left corner relative to centroid
     anchor = _resolve_anchor(anchor)
+    # initial left/bottom around centroid
     if anchor == "top left":
         left, bottom = fx - w - offset, fy + offset
     elif anchor == "top center":
@@ -57,6 +63,7 @@ def _place_rect_near(ax_main, cx, cy, w, h, anchor: str, offset: float):
     else:  # bottom right
         left, bottom = fx + offset, fy - h - offset
 
+    # clamp fully inside main axes rectangle
     left = max(mb.x0, min(mb.x0 + mb.width - w, left))
     bottom = max(mb.y0, min(mb.y0 + mb.height - h, bottom))
     return [left, bottom, w, h]
@@ -78,13 +85,13 @@ def draw_cluster_insets(
     label_col=None,
     label_fontsize=7,
     label_color=None,            # default: marker_color
-    label_align="left",         # left|center|right → interpreted as side-of-point
+    label_align="left",         # left|center|right
     label_halo=True,
     label_halo_width=2.5,
     label_halo_color="white",
-    label_offset_px=(6,4),       # (dx, dy) in points — APPLIED
+    label_offset_px=(6,4),    # <— NEW: (dx, dy) in points
     # placement around each cluster
-    anchor="top right",
+    anchor="top right",         # e.g. top left/top center/top right/center left/center/center right/bottom left/bottom center/bottom right
     offset_frac=0.012,
     # frame & connector
     frame_lw=0.6,
@@ -92,10 +99,13 @@ def draw_cluster_insets(
     link_color="#444444",
     link_lw=0.8,
 ):
-    """Create up to N small insets for the biggest clusters (size>1). Returns list[Axes]."""
+    """Create up to N small insets for the biggest clusters (size>1).
+    Returns list[Axes].
+    """
     fig = ax_main.figure
     setattr(fig, "_cz_has_local_insets", True)
 
+    # pick largest clusters (>1 members)
     big = [(cid, len(idxs)) for cid, idxs in clusters.items() if len(idxs) > 1]
     big.sort(key=lambda x: x[1], reverse=True)
     big = big[:max(0, int(max_insets))]
@@ -129,23 +139,18 @@ def draw_cluster_insets(
         # points
         axx.scatter(sub["Lon_DD"], sub["Lat_DD"], s=marker_size**2, c=marker_color, transform=ccrs.PlateCarree())
 
-        # labels (optional) — apply offsets and side-of-point alignment
+        # labels (optional) — style similar to marker: same color by default + white halo
         if show_labels and label_col and (label_col in df.columns):
-            # ha based on requested side; also auto-fix dx sign so text really sits on that side
-            side = str(label_align).lower()
-            base_ha = {"left": "right", "center": "center", "right": "left"}.get(side, "right")
-            dx_px, dy_px = label_offset_px
-            # enforce side-of-point placement if user gave dx contrary to side
-            if side == "left" and dx_px > 0:  dx_px = -abs(dx_px)
-            if side == "right" and dx_px < 0: dx_px =  abs(dx_px)
+            ha = {"left": "left", "center": "center", "right": "right"}.get(str(label_align).lower(), "left")
             peff = [pe.withStroke(linewidth=label_halo_width, foreground=label_halo_color)] if label_halo else None
             col = label_color or marker_color
+            dx_px, dy_px = label_offset_px
             for idx in clusters[cid]:
                 axx.text(
                     float(df.iloc[idx]["Lon_DD"]), float(df.iloc[idx]["Lat_DD"]),
                     str(df.iloc[idx][label_col]), fontsize=label_fontsize,
-                    color=col, transform=ccrs.PlateCarree(), ha=base_ha, va="bottom",
-                    path_effects=peff, xytext=(dx_px, dy_px), textcoords="offset points",
+                    color=col, transform=ccrs.PlateCarree(), ha=ha, va="bottom",
+                    path_effects=peff,
                 )
 
         # frame
@@ -167,3 +172,6 @@ def draw_cluster_insets(
         axes.append(axx)
 
     return axes
+
+
+
