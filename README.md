@@ -1,6 +1,9 @@
 # CartoZen v1.0.0 — Station Map Generator (Stable)
 
 **Released:** 2025-08-12
+![CartoZen Logo](assets/logo_small.png)
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16814346.svg)](https://doi.org/10.5281/zenodo.16814346)
 
 CartoZen turns your station table into a polished map—fast. It combines **Streamlit** + **Matplotlib/Cartopy** for a dependable, offline‑friendly mapping tool.
 
