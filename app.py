@@ -1,7 +1,9 @@
-# app.py — CartoZen with Inset fixes, independent colours, Declutter/Cluster, and Elements reliably drawn
+# app.py — CartoZen with Inset fixes, independent colours, Declutter/Cluster,
+# local cluster insets with anchors + label styling, and Elements reliably drawn
 # Requires:
 #   utils/inset_overview.py (your latest)
-#   utils/cluster_utils.py, utils/label_declutter.py, utils/local_inset_clusters.py (updated)
+#   utils/cluster_utils.py, utils/label_declutter.py
+#   utils/local_inset_clusters.py  (the ADVANCED version from the previous canvas)
 
 from PIL import Image
 import streamlit as st
@@ -105,6 +107,22 @@ if view == "Map":
             show_cluster_counts = st.checkbox("Show cluster counts on map", True)
             local_insets = st.checkbox("Local insets for largest clusters", False)
             max_insets = st.slider("Number of local insets", 0, 3, 2)
+            # NEW: advanced local-inset formatting & placement
+            cluster_anchor = st.selectbox(
+                "Cluster inset anchor",
+                [
+                    "top left","top center","top right",
+                    "center left","center","center right",
+                    "bottom left","bottom center","bottom right",
+                ],
+                index=2,
+            )
+            conn_color = st.color_picker("Connector colour", "#444444")
+            conn_lw    = st.slider("Connector thickness", 0.3, 3.0, 0.8, 0.1)
+            inset_label_color = st.color_picker("Inset label colour", m_col)
+            inset_label_halo  = st.checkbox("Inset label halo", True)
+            inset_label_halo_w= st.slider("Inset label halo width", 0.5, 4.0, 2.5, 0.1)
+            inset_label_align = st.selectbox("Inset label align", ["left","center","right"], index=0)
         with st.expander("**Font sizes**", expanded=False):
             axis_f = st.slider("Axis ticks", 6, 16, 8)
             label_f = st.slider("Labels", 6, 16, 8)
@@ -244,9 +262,18 @@ if view == "Map":
             pos = {"Top-Right": (0.95, 0.95), "Top-Left": (0.05, 0.95), "Bottom-Right": (0.95, 0.05), "Bottom-Left": (0.05, 0.05)}[na_pos]
             ax.annotate("N", xy=pos, xytext=(pos[0], pos[1] - 0.1), xycoords="axes fraction", ha="center", va="center", fontsize=north_f, color=na_col, arrowprops=dict(facecolor=na_col, width=5, headwidth=15))
 
-        # Optional local mini-insets for biggest clusters (adjacent placement + labels)
+        # Optional local mini-insets for biggest clusters (adjacent placement + label styles)
         if cluster_on and local_insets and clusters:
-            draw_cluster_insets(ax, df, clusters, max_insets=max_insets, pad_deg=0.2, box_frac=0.18, land_color=land_col, ocean_color=ocean_col, marker_color=m_col, marker_size=16, show_labels=True, label_col=lab, label_fontsize=max(6, int(label_f*0.8)), adjacent=True, frame_lw=0.6, link=True)
+            draw_cluster_insets(
+                ax, df, clusters,
+                max_insets=max_insets, pad_deg=0.2, box_frac=0.18,
+                land_color=land_col, ocean_color=ocean_col, marker_color=m_col, marker_size=16,
+                show_labels=True, label_col=lab, label_fontsize=max(6, int(label_f*0.8)),
+                label_color=inset_label_color, label_align=inset_label_align,
+                label_halo=inset_label_halo, label_halo_width=inset_label_halo_w,
+                anchor=cluster_anchor, offset_frac=0.012,
+                frame_lw=0.6, link=True, link_color=conn_color, link_lw=conn_lw,
+            )
 
         # Global inset overview
         if inset_on:
