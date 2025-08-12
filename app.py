@@ -217,8 +217,12 @@ if view == "Map":
         ax.add_feature(cfeature.BORDERS, ls=":"); ax.add_feature(cfeature.COASTLINE)
 
         # Grid
+        tol = 1e-9
         xt = np.arange(bounds[0], bounds[1] + g_int, g_int)
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
+        # keep only interior ticks (remove edges)
+xt_in = xt[(xt > bounds[0] + tol) & (xt < bounds[1] - tol)]
+yt_in = yt[(yt > bounds[2] + tol) & (yt < bounds[3] - tol)]
         if grid_on:
             gl = ax.gridlines(draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid)
             gl.top_labels = gl.right_labels = True
@@ -226,7 +230,7 @@ if view == "Map":
             gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
             gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
         else:                     
-            ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
+            ax.set_xticks(xt_in, crs=ccrs.PlateCarree()); ax.set_yticks(yt_in, crs=ccrs.PlateCarree())
             if axis_fmt == "DMS":
                 ax.xaxis.set_major_formatter(mticker.FuncFormatter(dms_fmt_lon))
                 ax.yaxis.set_major_formatter(mticker.FuncFormatter(dms_fmt_lat))
@@ -236,7 +240,7 @@ if view == "Map":
 
             ax.tick_params(
                 axis="both", direction="out", length=4, width=g_wid, color=g_col,
-                labelsize=axis_f, bottom=True, top=False, left=True, right=False
+                labelsize=axis_f, """bottom=True, top=False, left=True, right=False"""
             )
 
         # Overlay on main map
