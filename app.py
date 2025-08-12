@@ -225,14 +225,19 @@ if view == "Map":
             gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
             gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
             gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
-        else:
-            gl = ax.gridlines(draw_labels=True, xlocs=0, ylocs=0, color=g_col, ls=g_style, lw=g_wid)
-            gl.top_labels = gl.right_labels = False
-            gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
-            gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
-            gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
-            # ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
-            # ax.tick_params(length=4, width=g_wid, color=g_col, labelsize=axis_f)
+        else:                     
+            ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
+            if axis_fmt == "DMS":
+                ax.xaxis.set_major_formatter(mticker.FuncFormatter(dms_fmt_lon))
+                ax.yaxis.set_major_formatter(mticker.FuncFormatter(dms_fmt_lat))
+            else:
+                ax.xaxis.set_major_formatter(mticker.FuncFormatter(dd_fmt_lon))
+                ax.yaxis.set_major_formatter(mticker.FuncFormatter(dd_fmt_lat))
+
+            ax.tick_params(
+                axis="both", direction="out", length=4, width=g_wid, color=g_col,
+                labelsize=axis_f, bottom=True, top=True, left=True, right=True
+            )
 
         # Overlay on main map
         if ov_file and show_ov:
