@@ -126,7 +126,8 @@ if view == "Map":
             # --- Cluster inset sizing & styles ---
             cluster_inset_size_pct = st.slider("Cluster inset size (%)", 10, 40, 18)
             cluster_marker_size    = st.slider("Inset marker size", 6, 36, 16)
-            cluster_label_size     = st.slider("Inset label size", 6, 20, max(6, int(label_f*0.8)))
+            _default_inset_lbl = max(6, min(20, int(st.session_state.get("Labels", 8) * 0.8))) # a safe constant or peek into st.session_state to use the current “Labels” slider
+            cluster_label_size     = st.slider("Inset label size", 6, 20, _default_inset_lbl, key="cluster_label_size")
             cluster_frame_lw       = st.slider("Inset frame width", 0.3, 3.0, 0.6, 0.1)
             cluster_offset_frac    = st.slider("Inset offset fraction", 0.000, 0.050, 0.012, 0.001)
             
