@@ -10,4 +10,3 @@ geopandas
 fiona
 cartopy
 adjustText    # optional
-openpypxl
