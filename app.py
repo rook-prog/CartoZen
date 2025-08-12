@@ -87,7 +87,7 @@ if view == "Map":
             dx = st.slider("Label offset °lon", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
             dy = st.slider("Label offset °lat", -1.00, 1.00, 0.01, 0.05) if show_lab else 0
         with st.expander("**Grid & Axis**", expanded=False):
-            grid_on = st.checkbox("Grid", True)
+            grid_on = st.checkbox("Grid", False)
             g_int = st.selectbox("Interval °", [0.1,0.25,0.5,1,2,5,10], index=2)
             g_col = st.color_picker("Grid colour", "#666666")
             g_style = st.selectbox("Style", ["solid","dashed","dotted"])
@@ -221,13 +221,18 @@ if view == "Map":
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
         if grid_on:
             gl = ax.gridlines(draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid)
-            gl.top_labels = gl.right_labels = True
+            gl.top_labels = gl.right_labels = False
             gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
             gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
             gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
         else:
-            ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
-            ax.tick_params(length=4, width=g_wid, color=g_col, labelsize=axis_f)
+            gl = ax.gridlines(draw_labels=True, xlocs=0, ylocs=0, color=g_col, ls=g_style, lw=g_wid)
+            gl.top_labels = gl.right_labels = False
+            gl.xlabel_style = gl.ylabel_style = {"size": axis_f}
+            gl.xformatter = (mticker.FuncFormatter(dms_fmt_lon) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lon))
+            gl.yformatter = (mticker.FuncFormatter(dms_fmt_lat) if axis_fmt=="DMS" else mticker.FuncFormatter(dd_fmt_lat))
+            # ax.set_xticks(xt, crs=ccrs.PlateCarree()); ax.set_yticks(yt, crs=ccrs.PlateCarree())
+            # ax.tick_params(length=4, width=g_wid, color=g_col, labelsize=axis_f)
 
         # Overlay on main map
         if ov_file and show_ov:
