@@ -89,6 +89,7 @@ def draw_cluster_insets(
     label_halo=True,
     label_halo_width=2.5,
     label_halo_color="white",
+    label_offset_px=(6,4),    # <— NEW: (dx, dy) in points
     # placement around each cluster
     anchor="top right",         # e.g. top left/top center/top right/center left/center/center right/bottom left/bottom center/bottom right
     offset_frac=0.012,
@@ -143,6 +144,7 @@ def draw_cluster_insets(
             ha = {"left": "left", "center": "center", "right": "right"}.get(str(label_align).lower(), "left")
             peff = [pe.withStroke(linewidth=label_halo_width, foreground=label_halo_color)] if label_halo else None
             col = label_color or marker_color
+            dx_px, dy_px = label_offset_px
             for idx in clusters[cid]:
                 axx.text(
                     float(df.iloc[idx]["Lon_DD"]), float(df.iloc[idx]["Lat_DD"]),
