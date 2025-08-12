@@ -7,6 +7,5 @@ shapely
 pyproj
 geopandas
 fiona
-gdal
 cartopy
 adjustText    # optional
