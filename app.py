@@ -208,10 +208,31 @@ if view == "Map":
         if show_lab:
             if cluster_on and clusters is not None:
                 for _, r in plot_df.iterrows():
+                    cid = int(r.get("cluster_id", -1))
                     size = int(r.get("cluster_size", 1))
-                    label = str(size) if (size > 1 and show_cluster_counts) else str(r[lab])
-                    t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, label, fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo)
+                    # representative original row index for this cluster
+                    rep_idx = clusters.get(cid, [None])[0]
+
+                    if size > 1 and show_cluster_counts:
+                        label = str(size)  # show cluster size
+                    else:
+                        # fall back to a representative station's label from the original df
+                        label = (
+                            str(df.iloc[rep_idx][lab])
+                            if rep_idx is not None and lab in df.columns
+                            else ""
+                        )
+
+                    t = ax.text(
+                        r["Lon_DD"] + dx,
+                        r["Lat_DD"] + dy,
+                        label,
+                        fontsize=label_f,
+                        transform=ccrs.PlateCarree(),
+                        path_effects=halo,
+                    )
                     texts.append(t)
+
             else:
                 for _, r in plot_df.iterrows():
                     t = ax.text(r["Lon_DD"] + dx, r["Lat_DD"] + dy, str(r[lab]), fontsize=label_f, transform=ccrs.PlateCarree(), path_effects=halo)
