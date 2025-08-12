@@ -11,4 +11,4 @@ fiona
 cartopy
 adjustText    # optional
 openpyxl
-math
+
