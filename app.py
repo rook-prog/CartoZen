@@ -221,8 +221,8 @@ if view == "Map":
         xt = np.arange(bounds[0], bounds[1] + g_int, g_int)
         yt = np.arange(bounds[2], bounds[3] + g_int, g_int)
         # keep only interior ticks (remove edges)
-xt_in = xt[(xt > bounds[0] + tol) & (xt < bounds[1] - tol)]
-yt_in = yt[(yt > bounds[2] + tol) & (yt < bounds[3] - tol)]
+        xt_in = xt[(xt > bounds[0] + tol) & (xt < bounds[1] - tol)]
+        yt_in = yt[(yt > bounds[2] + tol) & (yt < bounds[3] - tol)]
         if grid_on:
             gl = ax.gridlines(draw_labels=True, xlocs=xt, ylocs=yt, color=g_col, ls=g_style, lw=g_wid)
             gl.top_labels = gl.right_labels = True
@@ -240,7 +240,7 @@ yt_in = yt[(yt > bounds[2] + tol) & (yt < bounds[3] - tol)]
 
             ax.tick_params(
                 axis="both", direction="out", length=4, width=g_wid, color=g_col,
-                labelsize=axis_f, """bottom=True, top=False, left=True, right=False"""
+                labelsize=axis_f, #bottom=True, top=False, left=True, right=False
             )
 
         # Overlay on main map
