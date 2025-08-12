@@ -77,7 +77,7 @@ if view == "Map":
             g_style = st.selectbox("Style", ["solid","dashed","dotted"])
             g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
             axis_fmt = st.radio("Label format", ["Decimal","DMS"])
-        with st.expander("**Elements + Fonts**", expanded=False):
+        with st.expander("**Elements**", expanded=False):
             leg_on = st.checkbox("Legend", True)
             leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"]) 
             sb_on = st.checkbox("Scale-bar", True)
@@ -123,6 +123,13 @@ if view == "Map":
             inset_label_halo  = st.checkbox("Inset label halo", True)
             inset_label_halo_w= st.slider("Inset label halo width", 0.5, 4.0, 2.5, 0.1)
             inset_label_align = st.selectbox("Inset label align", ["left","center","right"], index=0)
+            # --- Cluster inset sizing & styles ---
+            cluster_inset_size_pct = st.slider("Cluster inset size (%)", 10, 40, 18)
+            cluster_marker_size    = st.slider("Inset marker size", 6, 36, 16)
+            cluster_label_size     = st.slider("Inset label size", 6, 20, max(6, int(label_f*0.8)))
+            cluster_frame_lw       = st.slider("Inset frame width", 0.3, 3.0, 0.6, 0.1)
+            cluster_offset_frac    = st.slider("Inset offset fraction", 0.000, 0.050, 0.012, 0.001)
+            
         with st.expander("**Font sizes**", expanded=False):
             axis_f = st.slider("Axis ticks", 6, 16, 8)
             label_f = st.slider("Labels", 6, 16, 8)
@@ -266,14 +273,31 @@ if view == "Map":
         if cluster_on and local_insets and clusters:
             draw_cluster_insets(
                 ax, df, clusters,
-                max_insets=max_insets, pad_deg=0.2, box_frac=0.18,
-                land_color=land_col, ocean_color=ocean_col, marker_color=m_col, marker_size=16,
-                show_labels=True, label_col=lab, label_fontsize=max(6, int(label_f*0.8)),
-                label_color=inset_label_color, label_align=inset_label_align,
-                label_halo=inset_label_halo, label_halo_width=inset_label_halo_w,
-                anchor=cluster_anchor, offset_frac=0.012,
-                frame_lw=0.6, link=True, link_color=conn_color, link_lw=conn_lw,
+                max_insets=max_insets,
+                pad_deg=0.2,
+                box_frac=float(cluster_inset_size_pct)/100.0,  # size of the mini‑inset box vs main axes
+                land_color=land_col,
+                ocean_color=ocean_col,
+                marker_color=m_col,
+                marker_size=int(cluster_marker_size),          # inset marker size
+                show_labels=True,
+                label_col=lab,
+                label_fontsize=int(cluster_label_size),        # inset label size
+                label_color=inset_label_color,
+                label_align=inset_label_align,
+                label_halo=inset_label_halo,
+                label_halo_width=float(inset_label_halo_w),
+                anchor=cluster_anchor,
+                offset_frac=float(cluster_offset_frac),        # distance from cluster centroid (figure fraction)
+                frame_lw=float(cluster_frame_lw),              # inset frame thickness
+                link=True,
+                link_color=conn_color,
+                link_lw=float(conn_lw),                        # connector thickness,
             )
+        # Notes
+# • "Cluster inset size (%)" controls the footprint of each mini‑inset (internally `box_frac`).
+# • "Inset offset fraction" is in figure‑fraction units; typical good values are 0.008–0.020.
+# • Marker/label sizes here affect ONLY the mini‑insets; the main map uses the earlier marker/label controls.
 
         # Global inset overview
         if inset_on:
