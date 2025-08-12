@@ -291,7 +291,7 @@ if view == "Map":
                 label_align=inset_label_align,
                 label_halo=inset_label_halo,
                 label_halo_width=float(inset_label_halo_w),
-                label_offset_px=(6,4)
+                label_offset_px=(6,4),
                 anchor=cluster_anchor,
                 offset_frac=float(cluster_offset_frac),        # distance from cluster centroid (figure fraction)
                 frame_lw=float(cluster_frame_lw),              # inset frame thickness
