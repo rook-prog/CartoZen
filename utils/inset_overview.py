@@ -1,11 +1,27 @@
-# utils/inset_overview.py
-# Inset drawer with robust country/continent extents, dateline-safe, and separate colours
+# utils/inset_overview.py — Safe-extent + robust country/continent + color wiring
+# Ensures inset extents never go out of PlateCarree bounds and avoids wrap issues.
+
 import os
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from matplotlib.patches import Rectangle
 from shapely.geometry import Point, box as _box
 from shapely.prepared import prep
+
+
+# ── helpers ─────────────────────────────────────────────────────────────────
+
+def _safe_extent(b):
+    """Clamp (min_lon, max_lon, min_lat, max_lat) to valid PlateCarree range
+    and guarantee a non-zero span so Cartopy never explodes/crops."""
+    lo, hi, la, lb = map(float, b)
+    lo = max(-179.999, min(179.999, lo))
+    hi = max(-179.999, min(179.999, hi))
+    la = max(-89.9,   min(89.9,   la))
+    lb = max(-89.9,   min(89.9,   lb))
+    if hi <= lo: hi = lo + 0.01
+    if lb <= la: lb = la + 0.01
+    return (lo, hi, la, lb)
 
 
 def _anchor_offsets(pos: str):
@@ -87,33 +103,28 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None, country_hint=No
         if filt: records = filt
 
     hit_g = hit_a = None
-    # 0) contains centroid
     for g,a in records:
         if g is None: continue
         try:
             if prep(g).contains(pt): hit_g, hit_a = g, a; break
         except Exception: pass
-    # 1) intersects AOI box (coastal/offshore)
     if hit_g is None:
         for g,a in records:
             try:
                 if g is not None and g.intersects(aoi_box_geom): hit_g, hit_a = g, a; break
             except Exception: pass
-    # 2) intersects tiny centroid buffer
     if hit_g is None:
         pbuf = pt.buffer(1e-6)
         for g,a in records:
             try:
                 if g is not None and g.intersects(pbuf): hit_g, hit_a = g, a; break
             except Exception: pass
-    # 3) bbox contains centroid
     if hit_g is None:
         for g,a in records:
             try:
                 mnx,mny,mxx,mxy = g.bounds
                 if mnx <= cx <= mxx and mny <= cy <= mxy: hit_g, hit_a = g, a; break
             except Exception: pass
-    # 4) nearest to AOI box
     if hit_g is None:
         best = (1e18, None, None)
         for g,a in records:
@@ -153,6 +164,8 @@ def _country_and_continent_boxes(bounds, ne_countries_path=None, country_hint=No
 
     return cb, cont_box, cont_name
 
+
+# ── main API ─────────────────────────────────────────────────────────────────
 
 def draw_inset_overview(
     ax_main,
@@ -214,14 +227,14 @@ def draw_inset_overview(
     set_global = True
     try:
         if extent_mode == "aoi":
-            ax_inset.set_extent(_pad((bounds[0], bounds[1], bounds[2], bounds[3])), crs=ccrs.PlateCarree())
+            ax_inset.set_extent(_safe_extent(_pad((bounds[0], bounds[1], bounds[2], bounds[3]))), crs=ccrs.PlateCarree())
             set_global = False
         elif extent_mode in ("country", "continent"):
             cbox, cont_box, _ = _country_and_continent_boxes(bounds, ne_countries_path, country_hint)
             if extent_mode == "country" and cbox is not None:
-                ax_inset.set_extent(_pad(cbox), crs=ccrs.PlateCarree()); set_global = False
+                ax_inset.set_extent(_safe_extent(_pad(cbox)), crs=ccrs.PlateCarree()); set_global = False
             elif extent_mode == "continent" and cont_box is not None:
-                ax_inset.set_extent(_pad(cont_box), crs=ccrs.PlateCarree()); set_global = False
+                ax_inset.set_extent(_safe_extent(_pad(cont_box)), crs=ccrs.PlateCarree()); set_global = False
     except Exception:
         set_global = True
 
@@ -249,7 +262,6 @@ def draw_inset_overview(
                      transform=ccrs.PlateCarree(), zorder=101)
     ax_inset.add_patch(rect)
 
-    # Frame
     try:
         for s in ax_inset.spines.values():
             s.set_visible(bool(inset_frame)); s.set_linewidth(inset_frame_lw)
