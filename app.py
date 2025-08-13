@@ -61,12 +61,17 @@ def _safe_extent(b):
 
 # ── UI ──────────────────────────────────────────────────────────────────────
 view = st.selectbox("View", ["Map", "About", "Changelog"])
-try:
-    logo = Image.open("assets/carozen_icon.png"); st.columns([1,6,1])[1].image(logo, width=64)
-except Exception:
-    pass
-st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
-st.markdown("Upload your station data and generate custom maps easily.")
+left, right = st.columns([1,6], vertical_alignment="center")
+
+with left:
+    # show at native size to avoid blur (64 px)
+    st.image(_icon(), width=64)
+
+with right:
+    st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
+    st.markdown("Upload your station data and generate custom maps easily.")
+    #if Path(BANNER_HI).exists():
+        #st.image(BANNER_HI, width=220)  # large but sharp because source is hi-re
 
 if view == "Map":
     with st.sidebar:
