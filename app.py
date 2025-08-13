@@ -30,7 +30,7 @@ from utils.local_inset_clusters import draw_cluster_insets
 
 NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
 
-st.set_page_config(page_title="CartoZen v1.0.0", page_icon="Image.open("assets/logo_small.png")", layout="wide")
+st.set_page_config(page_title="CartoZen v1.0.0", page_icon=,"Image.open("assets/logo_small.png")", layout="wide")
 
 # ── helpers ─────────────────────────────────────────────────────────────────
 
