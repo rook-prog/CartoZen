@@ -29,6 +29,7 @@ from utils.label_declutter import declutter_texts
 from utils.local_inset_clusters import draw_cluster_insets
 
 NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
+logo = "assets/logo.png"
 
 def _icon():
     try:
@@ -65,7 +66,7 @@ left, right = st.columns([1,6], vertical_alignment="center")
 
 with left:
     # show at native size to avoid blur (64 px)
-    st.image(_icon(), width=64)
+    st.image(logo, width=220)
 
 with right:
     st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
