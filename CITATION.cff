@@ -4,7 +4,7 @@ title: "CartoZen"
 version: "1.0.0 -stable"
 doi: "10.5281/zenodo.16814346"
 authors:
-  - family-names: "B."
+  - family-names: "Balan"
     given-names: "Srijith"
 date-released: "2025-08-12"
 url: "https://github.com/rook-prog/CartoZen"
