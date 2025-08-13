@@ -33,7 +33,7 @@ NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
 def _icon():
     try:
         # Use a small transparent PNG (ideally 32×32 or 64×64)
-        return Image.open("assets/cartozen_icon.png")
+        return Image.open("assets/carozen_icon.png")
     except Exception:
         return "🗺️"  # fallback emoji
 
@@ -62,7 +62,7 @@ def _safe_extent(b):
 # ── UI ──────────────────────────────────────────────────────────────────────
 view = st.selectbox("View", ["Map", "About", "Changelog"])
 try:
-    logo = Image.open("assets/cartozen_icon.png"); st.columns([1,6,1])[1].image(logo, use_container_width=True)
+    logo = Image.open("assets/carozen_icon.png"); st.columns([1,6,1])[1].image(logo, use_container_width=True)
 except Exception:
     pass
 st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
