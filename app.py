@@ -62,7 +62,7 @@ def _safe_extent(b):
 # ── UI ──────────────────────────────────────────────────────────────────────
 view = st.selectbox("View", ["Map", "About", "Changelog"])
 try:
-    logo = Image.open("assets/carozen_icon.png"); st.columns([1,6,1])[1].image(logo, use_container_width=False)
+    logo = Image.open("assets/carozen_icon.png"); st.columns([1,6,1])[1].image(logo, width=64)
 except Exception:
     pass
 st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
