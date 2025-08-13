@@ -30,7 +30,7 @@ from utils.local_inset_clusters import draw_cluster_insets
 
 NE_COUNTRIES_ZIP = "assets/ne_10m_admin_0_countries.zip"
 
-st.set_page_config(page_title="CartoZen v1.0.0 (Stable)", page_icon="🗺️", layout="wide")
+st.set_page_config(page_title="CartoZen v1.0.0", page_icon="Image.open("assets/logo_small.png")", layout="wide")
 
 # ── helpers ─────────────────────────────────────────────────────────────────
 
@@ -58,7 +58,7 @@ try:
     logo = Image.open("assets/logo_small.png"); st.columns([1,6,1])[1].image(logo, use_container_width=False)
 except Exception:
     pass
-st.title("🗺️ CartoZen – Station Map Generator (Beta)")
+st.title("🗺️ CartoZen – Station Map Generator v1.0.0 (stable)")
 st.markdown("Upload your station data and generate custom maps easily.")
 
 if view == "Map":
