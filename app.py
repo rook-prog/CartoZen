@@ -62,11 +62,11 @@ def _safe_extent(b):
 
 # ── UI ──────────────────────────────────────────────────────────────────────
 view = st.selectbox("View", ["Map", "About", "Changelog"])
-left, right = st.columns([1,6], vertical_alignment="center")
+left, right = st.columns([2,6], vertical_alignment="center")
 
 with left:
     # show at native size to avoid blur (64 px)
-    st.image(logo, width=800)
+    st.image(logo, width=400)
 
 with right:
     st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
