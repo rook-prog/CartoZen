@@ -37,7 +37,7 @@ def _icon():
     except Exception:
         return "🗺️"  # fallback emoji
 
-st.set_page_config(page_title="CartoZen v1.0.0", page_icon= icon(), layout="wide")
+st.set_page_config(page_title="CartoZen v1.0.0", page_icon=icon(), layout="wide")
 
 # ── helpers ─────────────────────────────────────────────────────────────────
 
