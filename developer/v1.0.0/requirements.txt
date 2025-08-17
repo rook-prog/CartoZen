@@ -1,0 +1,14 @@
+streamlit
+matplotlib
+numpy
+pandas
+pillow
+utm
+shapely
+pyproj
+geopandas
+fiona
+cartopy
+adjustText    # optional
+openpyxl
+

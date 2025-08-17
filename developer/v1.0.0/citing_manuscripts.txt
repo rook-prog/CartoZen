@@ -1,0 +1,16 @@
+ Plain-text (journal footnote)
+Srijith B. (2025). CartoZen (v0.9.1 Beta) [Software]. Zenodo. https://doi.org/10.5281/zenodo.16566366
+
+for BibTex
+@software{cartozen_v091,
+  author       = {B., Srijith},
+  title        = {{CartoZen} (v0.9.1 Beta)},
+  year         = 2025,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.16566366},
+  url          = {https://doi.org/10.5281/zenodo.1234567},
+  note         = {Python Streamlit static-map generator}
+}
+
+for APA 7th
+ B., S. (2025). CartoZen (Version 0.9.1 Beta) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.16566366
