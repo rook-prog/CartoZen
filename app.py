@@ -224,6 +224,11 @@ if view == "Map":
             ori = st.selectbox("Orientation", ["Landscape","Portrait"]) 
             full = st.checkbox("Full-width preview", False)
 
+        with st.sidebar:
+            st.markdown("### 🙌 Support & Feedback")
+            st.link_button("❤️ Contribute", "https://ko-fi.com/rook_prog")
+            st.link_button("💬 Feedback", "https://forms.gle/pF2LAJ76gniiiT2a7)
+
     if up_file and stn and at and lab:
         # Coordinates
         lat_col = _find_col(df0.columns, ["lat","latitude","lat_dd","y","ycoord","y_coord"])
