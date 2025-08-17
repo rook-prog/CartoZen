@@ -69,7 +69,7 @@ with left:
     st.image(logo, width=400)
 
 with right:
-    st.title("CartoZen – Station Map Generator v1.0.0 (stable)")
+    st.title("CartoZen – Station Map Generator v1.1.0 (stable)")
     st.markdown("Upload your station data and generate custom maps easily.")
     #if Path(BANNER_HI).exists():
         #st.image(BANNER_HI, width=220)  # large but sharp because source is hi-re
