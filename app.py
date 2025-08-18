@@ -79,7 +79,7 @@ if view == "Map":
         st.header("**⚙️ Controls**")
         with st.expander("**Data upload**", expanded=False):
             up_file = st.file_uploader("CSV / XLSX", ["csv","xlsx"])
-            coord_fmt = st.selectbox("Coord format", ["DMS","Decimal Degrees","UTM"])
+            coord_fmt = st.selectbox("Co-ordinate format", ["DMS","Decimal Degrees","UTM"])
             auto_ext = st.checkbox("Auto-fit extent", True)
             margin = st.slider("Margin %", 1, 30, 10)
         buffer_deg = 5
@@ -116,10 +116,10 @@ if view == "Map":
             g_wid = st.slider("Line width", 0.5, 2.5, 1.0, 0.1)
             axis_fmt = st.radio("Label format", ["Decimal","DMS"])
         with st.expander("**Elements**", expanded=False):
-            leg_on = st.checkbox("Legend", True)
+            leg_on = st.checkbox("Legend", False)
             leg_pos = st.selectbox("Legend pos", ["upper left","upper right","lower left","lower right","center left","center right"]) 
             #leg_table = st.checkbox("Legend as table (align columns)", False)
-            sb_on = st.checkbox("Scale-bar", True)
+            sb_on = st.checkbox("Scale-bar", False)
             sb_len = st.number_input("Bar length (integer)", min_value=1, max_value=2000, value=50, step=1)
             sb_seg = st.slider("Segments", 2, 5, 3)
             sb_thk = st.number_input("Bar thickness (integer)", min_value=1, max_value=100, value=3, step=1)
@@ -242,7 +242,7 @@ if view == "Map":
         if df is None or "Lat_DD" not in df.columns or "Lon_DD" not in df.columns:
             st.error("❌ Converted coordinate columns not found."); st.stop()
         if df["Lat_DD"].isnull().all() or df["Lon_DD"].isnull().all():
-            st.error("❌ Coordinate conversion failed."); st.stop()
+            st.error("❌ Coordinate conversion failed. Make sure you've selected the proper coordinate format as per your data"); st.stop()
 
         # Extent (safe)
         if auto_ext:
