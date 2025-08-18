@@ -541,7 +541,7 @@ if view == "Map":
 
             txt_obj = ax.text(
                 custom_x, custom_y, custom_txt,
-                transform=ax.transAxes, ha=custom_ha, va=custom_va,
+                #transform=ax.transAxes, ha=custom_ha, va=custom_va,
                 fontsize=custom_fs, color=custom_col, rotation=custom_rot,
                 fontweight=("bold" if custom_bold else "normal"),
                 style=("italic" if custom_ital else "normal"),
