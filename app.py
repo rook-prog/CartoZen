@@ -188,8 +188,8 @@ if view == "Map":
             custom_bold = st.checkbox("Bold", True) if custom_on else False
             custom_ital = st.checkbox("Italic", False) if custom_on else False
             custom_rot  = st.number_input("Rotation (°)", min_value=-180, max_value=180, value=0, step=1) if custom_on else 0
-            custom_ha   = st.selectbox("Horizontal align", ["left","center","right"], index=1) if custom_on else "center"
-            custom_va   = st.selectbox("Vertical align", ["bottom","center","top"], index=2) if custom_on else "top"
+           # custom_ha   = st.selectbox("Horizontal align", ["left","center","right"], index=1) if custom_on else "center"
+            #custom_va   = st.selectbox("Vertical align", ["bottom","center","top"], index=2) if custom_on else "top"
             custom_box  = st.checkbox("Background box", False) if custom_on else False
             custom_box_fc = st.color_picker("Box face", "#FFFFFF") if (custom_on and custom_box) else "#FFFFFF"
             custom_box_ec = st.color_picker("Box edge", "#000000") if (custom_on and custom_box) else "#000000"
@@ -554,7 +554,7 @@ if view == "Map":
 
 
         # Watermark
-        wm = ax.text(0.99, 0.01, "CartoZen Beta", transform=ax.transAxes, ha="right", va="bottom", fontsize=10, color="gray", alpha=0.6)
+        wm = ax.text(0.99, 0.01, "CartoZen v1.1.0", transform=ax.transAxes, ha="right", va="bottom", fontsize=11, color="gray", alpha=0.6)
         wm.set_clip_on(True); wm.set_clip_path(ax.patch)
 
         # Export (avoid tight bbox when any inset present)
