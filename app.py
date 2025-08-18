@@ -79,7 +79,7 @@ if view == "Map":
         st.header("**⚙️ Controls**")
         with st.expander("**Data upload**", expanded=False):
             up_file = st.file_uploader("CSV / XLSX", ["csv","xlsx"])
-            coord_fmt = st.selectbox("Co-ordinate format", ["DMS","Decimal Degrees","UTM"])
+            coord_fmt = st.selectbox("Coordinate format", ["DMS","Decimal Degrees","UTM"])
             auto_ext = st.checkbox("Auto-fit extent", True)
             margin = st.slider("Margin %", 1, 30, 10)
         buffer_deg = 5
